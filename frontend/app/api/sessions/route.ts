@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
+import "@/models/User"; // Ensure User model is registered
 import { Session } from "@/models/Session";
 import { decrypt } from "@/lib/auth";
 import { z } from "zod";
@@ -34,7 +35,8 @@ export async function GET() {
 
     return NextResponse.json(sessions, { status: 200 });
   } catch (error: any) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("API Error:", error);
+    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -58,6 +60,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(session, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("API Error (POST):", error);
+    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }

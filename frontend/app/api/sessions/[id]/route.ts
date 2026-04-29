@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
+import "@/models/User"; // Ensure User model is registered
 import { Session } from "@/models/Session";
 import { decrypt } from "@/lib/auth";
 import { z } from "zod";

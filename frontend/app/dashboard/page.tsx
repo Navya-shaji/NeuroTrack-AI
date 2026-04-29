@@ -1,6 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  LineChart, Line, Cell, PieChart, Pie
+} from 'recharts';
+import { 
+  Clock, BookOpen, Calendar, Trash2, Edit2, Plus, 
+  Filter, Search, ArrowUpRight, TrendingUp, MoreVertical
+} from 'lucide-react';
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Toast, ToastType } from "@/components/ui/Toast";
+import { cn } from "@/lib/utils";
 
 interface Session {
   _id: string;
@@ -16,7 +27,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ title: "", subject: "", duration: 30, date: new Date().toISOString().split('T')[0], notes: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  
+  // Filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState("all");
 
   useEffect(() => {
     fetchSessions();
@@ -29,16 +44,18 @@ export default function Dashboard() {
       const data = await res.json();
       setSessions(data);
     } catch (err: any) {
-      console.error(err);
+      showToast(err.message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  const showToast = (message: string, type: ToastType = 'info') => {
+    setToast({ message, type });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
     try {
       const url = editingId ? `/api/sessions/${editingId}` : "/api/sessions";
       const method = editingId ? "PUT" : "POST";
@@ -56,11 +73,12 @@ export default function Dashboard() {
         throw new Error(data.error || "Something went wrong");
       }
 
+      showToast(editingId ? "Session updated!" : "Session logged!", 'success');
       setForm({ title: "", subject: "", duration: 30, date: new Date().toISOString().split('T')[0], notes: "" });
       setEditingId(null);
       fetchSessions();
     } catch (err: any) {
-      setError(err.message);
+      showToast(err.message, 'error');
     }
   };
 
@@ -70,127 +88,275 @@ export default function Dashboard() {
       const res = await fetch(`/api/sessions/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
       setSessions(sessions.filter((s) => s._id !== id));
+      showToast("Session deleted", 'success');
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message, 'error');
     }
   };
 
-  const startEdit = (session: Session) => {
-    setEditingId(session._id);
-    setForm({
-      title: session.title,
-      subject: session.subject,
-      duration: session.duration,
-      date: new Date(session.date).toISOString().split('T')[0],
-      notes: session.notes || "",
+  // Stats Calculations
+  const stats = useMemo(() => {
+    const totalMinutes = sessions.reduce((acc, s) => acc + s.duration, 0);
+    const totalHours = (totalMinutes / 60).toFixed(1);
+    const uniqueSubjects = new Set(sessions.map(s => s.subject)).size;
+    const avgSession = sessions.length ? (totalMinutes / sessions.length).toFixed(0) : 0;
+    
+    // Group by subject for chart
+    const subjectMap: Record<string, number> = {};
+    sessions.forEach(s => {
+      subjectMap[s.subject] = (subjectMap[s.subject] || 0) + s.duration;
     });
-  };
+    const subjectData = Object.entries(subjectMap).map(([name, value]) => ({ name, value }));
 
-  const cancelEdit = () => {
-    setEditingId(null);
-    setForm({ title: "", subject: "", duration: 30, date: new Date().toISOString().split('T')[0], notes: "" });
-    setError("");
-  };
+    // Weekly progress (last 7 days)
+    const last7Days = [...Array(7)].map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return d.toISOString().split('T')[0];
+    });
+    
+    const weeklyData = last7Days.map(date => {
+      const dayTotal = sessions
+        .filter(s => s.date.split('T')[0] === date)
+        .reduce((acc, s) => acc + s.duration, 0);
+      return {
+        date: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }),
+        minutes: dayTotal
+      };
+    });
+
+    return { totalHours, uniqueSubjects, avgSession, subjectData, weeklyData };
+  }, [sessions]);
+
+  // Filtering Logic
+  const filteredSessions = useMemo(() => {
+    return sessions.filter(s => {
+      const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           s.subject.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSubject = subjectFilter === "all" || s.subject === subjectFilter;
+      return matchesSearch && matchesSubject;
+    });
+  }, [sessions, searchQuery, subjectFilter]);
+
+  const subjects = Array.from(new Set(sessions.map(s => s.subject)));
 
   return (
-    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 w-full flex-grow flex flex-col gap-8">
-      <div>
-        <h1 className="text-4xl font-bold text-white tracking-tight">Study Sessions</h1>
-        <p className="text-slate-400 mt-2">Track your progress and log your study hours.</p>
+    <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8 w-full flex-grow flex flex-col gap-10">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-white tracking-tight flex items-center gap-3">
+            <TrendingUp className="text-indigo-400 w-8 h-8" />
+            Study Tracker
+          </h1>
+          <p className="text-slate-400 mt-2">Analyze your progress and optimize your study routine.</p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+              <Search className="w-4 h-4" />
+            </div>
+            <input 
+              type="text" 
+              placeholder="Search sessions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 bg-slate-900/50 border border-white/10 rounded-full text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none w-64 transition-all"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { label: 'Total Study Time', value: `${stats.totalHours}h`, icon: Clock, color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
+          { label: 'Active Subjects', value: stats.uniqueSubjects, icon: BookOpen, color: 'text-purple-400', bg: 'bg-purple-400/10' },
+          { label: 'Avg Session', value: `${stats.avgSession}m`, icon: Calendar, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+          { label: 'Total Sessions', value: sessions.length, icon: TrendingUp, color: 'text-rose-400', bg: 'bg-rose-400/10' },
+        ].map((item, i) => (
+          <div key={i} className="bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden group">
+             <div className="flex justify-between items-start mb-4">
+               <div className={cn("p-3 rounded-2xl", item.bg)}>
+                 <item.icon className={cn("w-6 h-6", item.color)} />
+               </div>
+               <ArrowUpRight className="w-5 h-5 text-slate-600 group-hover:text-slate-400 transition-colors" />
+             </div>
+             <p className="text-slate-400 text-sm font-medium">{item.label}</p>
+             <h3 className="text-3xl font-bold text-white mt-1">{loading ? <Skeleton className="h-9 w-20" /> : item.value}</h3>
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Form Section */}
+        {/* Charts & Form */}
+        <div className="lg:col-span-2 flex flex-col gap-8">
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-xl">
+              <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-indigo-400" />
+                Weekly Progress
+              </h3>
+              <div className="h-[200px] w-full">
+                {loading ? <Skeleton className="h-full w-full rounded-2xl" /> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={stats.weeklyData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                      <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#ffffff10', borderRadius: '12px' }}
+                        itemStyle={{ color: '#818cf8' }}
+                      />
+                      <Line type="monotone" dataKey="minutes" stroke="#818cf8" strokeWidth={3} dot={{ r: 4, fill: '#818cf8' }} activeDot={{ r: 6 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-xl">
+              <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-purple-400" />
+                Time per Subject
+              </h3>
+              <div className="h-[200px] w-full">
+                {loading ? <Skeleton className="h-full w-full rounded-2xl" /> : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={stats.subjectData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                      <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#ffffff10', borderRadius: '12px' }}
+                        cursor={{ fill: '#ffffff05' }}
+                      />
+                      <Bar dataKey="value" fill="#a78bfa" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Sessions List */}
+          <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-xl font-bold text-white">Recent Sessions</h3>
+              <div className="flex items-center gap-3">
+                <select 
+                  value={subjectFilter}
+                  onChange={(e) => setSubjectFilter(e.target.value)}
+                  className="bg-slate-950/50 border border-white/10 rounded-full text-xs text-slate-300 py-1.5 px-4 outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="all">All Subjects</option>
+                  {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {loading ? [...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />) : 
+               filteredSessions.length === 0 ? (
+                <div className="text-center py-20 bg-slate-950/20 rounded-3xl border border-dashed border-white/5">
+                  <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="w-8 h-8 text-slate-600" />
+                  </div>
+                  <p className="text-slate-400">No sessions found</p>
+                  <p className="text-sm text-slate-500 mt-1">Try adjusting your filters or log a new session.</p>
+                </div>
+              ) : (
+                filteredSessions.slice(0, 5).map((session) => (
+                  <div key={session._id} className="group relative bg-slate-950/40 hover:bg-slate-950/60 border border-white/5 hover:border-indigo-500/30 p-5 rounded-2xl transition-all duration-300">
+                    <div className="flex justify-between items-center">
+                      <div className="flex gap-4 items-center">
+                        <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                          <BookOpen className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-semibold group-hover:text-indigo-300 transition-colors">{session.title}</h4>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 font-medium uppercase tracking-wider">
+                            <span>{session.subject}</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-700" />
+                            <span>{session.duration} mins</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-700" />
+                            <span>{new Date(session.date).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setEditingId(session._id) || setForm({
+                          title: session.title,
+                          subject: session.subject,
+                          duration: session.duration,
+                          date: new Date(session.date).toISOString().split('T')[0],
+                          notes: session.notes || ""
+                        })} className="p-2 text-slate-500 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(session._id)} className="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/5 rounded-lg transition-all">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Form Container */}
         <div className="lg:col-span-1">
-          <div className="bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-xl sticky top-24">
-            <h2 className="text-xl font-semibold text-white mb-6">
-              {editingId ? "Edit Session" : "Log New Session"}
-            </h2>
+          <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-xl sticky top-28">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2.5 rounded-xl bg-emerald-500/10">
+                <Plus className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h2 className="text-xl font-bold text-white">{editingId ? 'Edit Session' : 'New Session'}</h2>
+            </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && <div className="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">{error}</div>}
-              
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Title</label>
-                <input required type="text" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className="w-full rounded-xl bg-slate-950/50 border border-white/10 py-2 px-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="e.g. Chapter 1 Review" />
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest ml-1">Title</label>
+                <input required type="text" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-5 py-3.5 text-white focus:border-indigo-500 outline-none transition-all placeholder:text-slate-600" placeholder="Session Title" />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Subject</label>
-                <input required type="text" value={form.subject} onChange={(e) => setForm({...form, subject: e.target.value})} className="w-full rounded-xl bg-slate-950/50 border border-white/10 py-2 px-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="e.g. Biology" />
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest ml-1">Subject</label>
+                <input required type="text" value={form.subject} onChange={(e) => setForm({...form, subject: e.target.value})} className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-5 py-3.5 text-white focus:border-indigo-500 outline-none transition-all placeholder:text-slate-600" placeholder="Subject Name" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Duration (min)</label>
-                  <input required type="number" min="1" value={form.duration} onChange={(e) => setForm({...form, duration: parseInt(e.target.value)})} className="w-full rounded-xl bg-slate-950/50 border border-white/10 py-2 px-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest ml-1">Duration</label>
+                  <input required type="number" value={form.duration} onChange={(e) => setForm({...form, duration: parseInt(e.target.value)})} className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-5 py-3.5 text-white focus:border-indigo-500 outline-none transition-all" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Date</label>
-                  <input required type="date" value={form.date} onChange={(e) => setForm({...form, date: e.target.value})} className="w-full rounded-xl bg-slate-950/50 border border-white/10 py-2 px-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest ml-1">Date</label>
+                  <input required type="date" value={form.date} onChange={(e) => setForm({...form, date: e.target.value})} className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-5 py-3.5 text-white focus:border-indigo-500 outline-none transition-all" />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Notes (Optional)</label>
-                <textarea rows={3} value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} className="w-full rounded-xl bg-slate-950/50 border border-white/10 py-2 px-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none" placeholder="Key takeaways..."></textarea>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest ml-1">Notes</label>
+                <textarea rows={3} value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} className="w-full bg-slate-950/50 border border-white/5 rounded-2xl px-5 py-3.5 text-white focus:border-indigo-500 outline-none transition-all resize-none" placeholder="Optional notes..."></textarea>
               </div>
 
-              <div className="flex gap-3 pt-2">
-                <button type="submit" className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl font-medium transition-all shadow-lg hover:shadow-indigo-500/30">
+              <div className="flex gap-4">
+                <button type="submit" className="flex-1 bg-white hover:bg-slate-200 text-slate-950 py-4 rounded-2xl font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-[0.98]">
                   {editingId ? "Update" : "Save"}
                 </button>
                 {editingId && (
-                  <button type="button" onClick={cancelEdit} className="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition-all">
+                  <button type="button" onClick={() => setEditingId(null)} className="px-6 bg-slate-800 text-white rounded-2xl hover:bg-slate-700 transition-all font-semibold">
                     Cancel
                   </button>
                 )}
               </div>
             </form>
-          </div>
-        </div>
-
-        {/* List Section */}
-        <div className="lg:col-span-2">
-          <div className="bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-xl min-h-[500px]">
-            <h2 className="text-xl font-semibold text-white mb-6">Recent Sessions</h2>
-            
-            {loading ? (
-              <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" /></div>
-            ) : sessions.length === 0 ? (
-              <div className="text-center py-20">
-                <p className="text-slate-400 mb-4">No study sessions logged yet.</p>
-                <p className="text-sm text-slate-500">Use the form to create your first session!</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {sessions.map((session) => (
-                  <div key={session._id} className="bg-slate-950/50 border border-white/5 p-5 rounded-2xl hover:border-indigo-500/30 transition-colors group">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center gap-3 mb-1">
-                          <h3 className="text-lg font-medium text-white">{session.title}</h3>
-                          <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-medium border border-indigo-500/20">{session.subject}</span>
-                        </div>
-                        <p className="text-sm text-slate-400 flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          {session.duration} mins • {new Date(session.date).toLocaleDateString()}
-                        </p>
-                        {session.notes && <p className="mt-3 text-sm text-slate-300 italic">"{session.notes}"</p>}
-                      </div>
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => startEdit(session)} className="p-2 text-slate-400 hover:text-indigo-400 bg-white/5 rounded-lg transition-colors">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                        </button>
-                        <button onClick={() => handleDelete(session._id)} className="p-2 text-slate-400 hover:text-red-400 bg-white/5 rounded-lg transition-colors">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>

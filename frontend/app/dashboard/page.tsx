@@ -7,8 +7,9 @@ import {
 } from 'recharts';
 import { 
   Clock, BookOpen, Calendar, Trash2, Edit2, Plus, 
-  Filter, Search, ArrowUpRight, TrendingUp, MoreVertical
+  Filter, Search, ArrowUpRight, TrendingUp, MoreVertical, Sparkles
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Toast, ToastType } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,8 @@ export default function Dashboard() {
   const [form, setForm] = useState({ title: "", subject: "", duration: 30, date: new Date().toISOString().split('T')[0], notes: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [aiInsights, setAiInsights] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,6 +50,22 @@ export default function Dashboard() {
       showToast(err.message, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const generateInsights = async () => {
+    setGenerating(true);
+    setAiInsights(null);
+    try {
+      const res = await fetch("/api/ai/suggest", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to generate insights");
+      setAiInsights(data.suggestion);
+      showToast("AI Insights generated!", 'success');
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -188,6 +207,61 @@ export default function Dashboard() {
              <h3 className="text-3xl font-bold text-white mt-1">{loading ? <Skeleton className="h-9 w-20" /> : item.value}</h3>
           </div>
         ))}
+      </div>
+
+      {/* AI Insights Section */}
+      <div className="bg-gradient-to-br from-indigo-600/10 via-purple-600/10 to-transparent border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+          <Sparkles className="w-24 h-24 text-indigo-400" />
+        </div>
+        
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div className="max-w-2xl">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+              <Sparkles className="text-indigo-400 w-6 h-6" />
+              AI Study Insights
+            </h2>
+            <p className="text-slate-400 mt-2">
+              Get personalized study summaries and suggestions based on your recent sessions. 
+              Our AI analyzes your patterns to help you stay focused.
+            </p>
+          </div>
+          <button 
+            onClick={generateInsights}
+            disabled={generating || sessions.length === 0}
+            className="flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold rounded-2xl transition-all shadow-lg hover:shadow-indigo-500/30 active:scale-[0.98] whitespace-nowrap"
+          >
+            {generating ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Analyzing Sessions...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5" />
+                Generate Insights
+              </>
+            )}
+          </button>
+        </div>
+
+        {aiInsights && (
+          <div className="mt-8 p-6 bg-slate-950/50 border border-white/5 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="prose prose-invert max-w-none text-slate-300 leading-relaxed">
+              <ReactMarkdown 
+                components={{
+                  h2: ({node, ...props}) => <h3 className="text-xl font-bold text-white mb-4 mt-6 first:mt-0" {...props} />,
+                  h3: ({node, ...props}) => <h4 className="text-lg font-semibold text-indigo-300 mb-3" {...props} />,
+                  ul: ({node, ...props}) => <ul className="list-disc pl-5 space-y-2 mb-4" {...props} />,
+                  p: ({node, ...props}) => <p className="mb-4" {...props} />,
+                  strong: ({node, ...props}) => <strong className="text-indigo-200 font-bold" {...props} />,
+                }}
+              >
+                {aiInsights}
+              </ReactMarkdown>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

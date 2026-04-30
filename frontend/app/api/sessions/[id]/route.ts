@@ -25,8 +25,9 @@ async function getUser() {
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -39,7 +40,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
     await connectDB();
     const session = await Session.findOneAndUpdate(
-      { _id: params.id, userId: user.id },
+      { _id: id, userId: user.id },
       { $set: parsed.data },
       { new: true }
     );
@@ -54,13 +55,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     await connectDB();
-    const session = await Session.findOneAndDelete({ _id: params.id, userId: user.id });
+    const session = await Session.findOneAndDelete({ _id: id, userId: user.id });
 
     if (!session) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });

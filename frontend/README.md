@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧠 NeuroTrack AI - Advanced Study Management System
 
-## Getting Started
+NeuroTrack AI is a sophisticated, AI-powered study tracking platform built with **Next.js 16**, designed to move beyond basic CRUD applications by providing intelligent insights and resilient data management for students.
 
-First, run the development server:
+## 🚀 Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Smart CRUD**: Full lifecycle management of study sessions with subject-based filtering and analytics.
+- **AI-Powered Insights**: Integrated **Google Gemini AI** to analyze study patterns and provide personalized recommendations.
+- **Data Visualization**: Interactive progress tracking using **Recharts** for weekly and subject-specific analysis.
+- **Enterprise-Grade Auth**: Secure authentication via **Google OAuth** and **JWT-based** session management.
+- **Premium UI/UX**: A clean, monochromatic "White & Light Purple" design system built with **Tailwind CSS**.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Technology Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: Next.js 16 (App Router, TypeScript)
+- **Styling**: Tailwind CSS 4.0
+- **Database**: MongoDB (Mongoose ORM)
+- **AI Library**: Google Generative AI SDK
+- **Icons/Charts**: Lucide React, Recharts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 💡 Sophisticated Problem Solving
 
-## Learn More
+Unlike a standard task manager, NeuroTrack AI addresses real-world challenges:
+1. **AI Resilience**: Implemented sophisticated fallback mechanisms (Demo Mode) to ensure high availability even when external AI quotas are exceeded.
+2. **Security**: Multi-layered auth strategy using HTTP-only cookies and decryption middleware for protected routes.
+3. **Optimized Routing**: Leveraging Next.js 16's latest async patterns for dynamic API parameters and server-side rendering.
+4. **Data Sanitization**: Robust validation using **Zod** to prevent injection and ensure data integrity.
 
-To learn more about Next.js, take a look at the following resources:
+## 📦 Getting Started
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Clone and Install**:
+   ```bash
+   git clone https://github.com/Navya-shaji/NeuroTrack-AI.git
+   cd NeuroTrack-AI/frontend
+   npm install
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Environment Setup**:
+   Create a `.env.local` with:
+   - `MONGODB_URI`
+   - `JWT_SECRET`
+   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
+   - `GOOGLE_API_KEY` (Gemini)
 
-## Deploy on Vercel
+3. **Run Dev Server**:
+   ```bash
+   npm run dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+Developed by **Navya Shaji** | [LinkedIn](https://linkedin.com/in/navya-shaji) | [GitHub](https://github.com/Navya-shaji)

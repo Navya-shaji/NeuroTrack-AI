@@ -19,8 +19,26 @@ async function getUser() {
   const token = cookieStore.get("token")?.value;
   if (!token) return null;
   try {
-    return await decrypt(token);
-  } catch {
+    const payload = await decrypt(token);
+    if (!payload) return null;
+
+    let rawId = payload.id || payload.userId || payload._id;
+    
+    if (rawId) {
+      if (typeof rawId === 'object' && (rawId.buffer || rawId.id)) {
+        console.warn("Legacy BSON object found in token, clearing cookie.");
+        // We can't easily clear cookies inside a nested function in Next.js 15
+        // but we can mark the payload as "expired"
+        return { expired: true };
+      }
+      payload.id = rawId.toString();
+    }
+    
+    if (payload.id === "[object Object]") return { expired: true };
+    
+    return payload;
+  } catch (err) {
+    console.error("Auth Decryption Error:", err);
     return null;
   }
 }
@@ -28,7 +46,13 @@ async function getUser() {
 export async function GET() {
   try {
     const user = await getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user || user.expired) {
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      if (user?.expired) {
+        response.cookies.set("token", "", { expires: new Date(0), path: "/" });
+      }
+      return response;
+    }
 
     await connectDB();
     const sessions = await Session.find({ userId: user.id }).sort({ date: -1 });
@@ -43,7 +67,13 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const user = await getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user || user.expired) {
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      if (user?.expired) {
+        response.cookies.set("token", "", { expires: new Date(0), path: "/" });
+      }
+      return response;
+    }
 
     const body = await req.json();
     const parsed = sessionSchema.safeParse(body);

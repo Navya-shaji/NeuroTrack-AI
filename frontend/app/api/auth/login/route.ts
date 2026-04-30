@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    const token = await encrypt({ id: user._id, email: user.email });
+    const token = await encrypt({ id: user._id.toString(), email: user.email });
 
     const response = NextResponse.json({ message: "Logged in successfully" }, { status: 200 });
     response.cookies.set({

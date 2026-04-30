@@ -57,15 +57,39 @@ export default function Dashboard() {
     setGenerating(true);
     setAiInsights(null);
     try {
-      const res = await fetch("/api/ai/suggest", { method: "POST" });
+      const res = await fetch("/api/ai/insights", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "generate" })
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate insights");
-      setAiInsights(data.suggestion);
+      setAiInsights(data.insight);
       showToast("AI Insights generated!", 'success');
     } catch (err: any) {
       showToast(err.message, 'error');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const summarizeNotes = async (notes: string, title: string) => {
+    if (!notes) return;
+    showToast(`Summarizing notes for ${title}...`, 'info');
+    try {
+      const res = await fetch("/api/ai/insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "summarize", notes })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to summarize notes");
+      
+      // We could show this in a modal or just update the insight area
+      setAiInsights(`### Summary for ${title}\n\n${data.summary}`);
+      window.scrollTo({ top: 200, behavior: 'smooth' });
+    } catch (err: any) {
+      showToast(err.message, 'error');
     }
   };
 
@@ -362,6 +386,15 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        {session.notes && (
+                          <button 
+                            onClick={() => summarizeNotes(session.notes!, session.title)}
+                            title="Summarize Notes"
+                            className="p-2 text-indigo-400 hover:text-white hover:bg-indigo-500/20 rounded-lg transition-all"
+                          >
+                            <Sparkles className="w-4 h-4" />
+                          </button>
+                        )}
                         <button onClick={() => setEditingId(session._id) || setForm({
                           title: session.title,
                           subject: session.subject,

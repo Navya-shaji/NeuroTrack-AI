@@ -208,213 +208,234 @@ export default function Dashboard() {
   if (!isMounted) return null;
 
   return (
-    <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8 w-full flex-grow flex flex-col gap-10">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    <div className="min-h-[calc(100vh-8rem)] bg-[#09090b] text-zinc-100 font-sans selection:bg-purple-500/30">
+      {/* Background ambient glow */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-extrabold text-purple-900 tracking-tight flex items-center gap-3">
-            <TrendingUp className="text-purple-600 w-8 h-8" />
-            Study Tracker
-          </h1>
-          <p className="text-purple-900/60 mt-2 font-bold">Analyze your progress and optimize your study routine.</p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-purple-400 group-focus-within:text-purple-600 transition-colors">
-              <Search className="w-4 h-4" />
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 w-full flex-grow flex flex-col gap-12 relative z-10">
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/10">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-medium tracking-wide mb-4">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>NeuroTrack Workspace</span>
             </div>
-            <input 
-              type="text" 
-              placeholder="Search sessions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-white border border-purple-100 rounded-full text-sm text-purple-900 focus:ring-2 focus:ring-purple-500 outline-none w-64 transition-all shadow-sm font-bold"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: 'Total Study Time', value: `${stats.totalHours}h`, icon: Clock, color: 'text-purple-600', bg: 'bg-purple-100' },
-          { label: 'Active Subjects', value: stats.uniqueSubjects, icon: BookOpen, color: 'text-purple-500', bg: 'bg-purple-50' },
-          { label: 'Avg Session', value: `${stats.avgSession}m`, icon: Calendar, color: 'text-purple-400', bg: 'bg-purple-50' },
-          { label: 'Total Sessions', value: sessions.length, icon: TrendingUp, color: 'text-purple-700', bg: 'bg-purple-100' },
-        ].map((item, i) => (
-          <div key={i} className="bg-white border border-purple-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
-             <div className="flex justify-between items-start mb-4">
-               <div className={cn("p-3 rounded-2xl", item.bg)}>
-                 <item.icon className={cn("w-6 h-6", item.color)} />
-               </div>
-               <ArrowUpRight className="w-5 h-5 text-purple-200 group-hover:text-purple-500 transition-colors" />
-             </div>
-             <p className="text-purple-900/40 text-xs font-bold uppercase tracking-wider">{item.label}</p>
-             <h3 className="text-3xl font-extrabold text-purple-900 mt-1">{loading ? <Skeleton className="h-9 w-20" /> : item.value}</h3>
-          </div>
-        ))}
-      </div>
-
-      {/* AI Insights Section */}
-      <div className="bg-white border border-purple-100 rounded-3xl p-8 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-5">
-          <Sparkles className="w-24 h-24 text-purple-600" />
-        </div>
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="max-w-2xl">
-            <h2 className="text-2xl font-extrabold text-purple-900 flex items-center gap-3">
-              <Sparkles className="text-purple-600 w-6 h-6" />
-              AI Study Insights
-            </h2>
-            <p className="text-purple-900/60 mt-2 font-bold">
-              Get personalized study summaries and suggestions based on your recent sessions. 
-              Our AI analyzes your patterns to help you stay focused.
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-white flex items-center gap-3">
+              Dashboard
+            </h1>
+            <p className="text-zinc-400 mt-2 text-sm max-w-xl leading-relaxed">
+              Analyze your study patterns, generate AI-driven insights, and optimize your learning workflow.
             </p>
           </div>
-          <button 
-            onClick={generateInsights}
-            disabled={generating || sessions.length === 0}
-            className="flex items-center justify-center gap-2 px-8 py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-50 disabled:text-purple-200 text-white font-bold rounded-2xl transition-all shadow-md shadow-purple-100 hover:shadow-purple-200 active:scale-[0.98] whitespace-nowrap"
-          >
-            {generating ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5" />
-                Generate Insights
-              </>
-            )}
-          </button>
+          
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="relative group w-full md:w-72">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-purple-400 transition-colors">
+                <Search className="w-4 h-4" />
+              </div>
+              <input 
+                type="text" 
+                placeholder="Search sessions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-zinc-900/50 border border-white/10 rounded-xl text-sm text-zinc-200 focus:ring-1 focus:ring-purple-500/50 focus:border-purple-500/50 focus:bg-zinc-900 outline-none transition-all placeholder:text-zinc-600 backdrop-blur-sm"
+              />
+            </div>
+          </div>
         </div>
 
-        {aiInsights && (
-          <div className="mt-8 p-6 bg-purple-50/50 border border-purple-100 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-500">
-            <div className="prose prose-purple max-w-none text-purple-900/80 leading-relaxed font-bold">
-              <ReactMarkdown 
-                components={{
-                  h2: ({node, ...props}) => <h3 className="text-xl font-extrabold text-purple-900 mb-4 mt-6 first:mt-0" {...props} />,
-                  h3: ({node, ...props}) => <h4 className="text-lg font-bold text-purple-700 mb-3" {...props} />,
-                  ul: ({node, ...props}) => <ul className="list-disc pl-5 space-y-2 mb-4 text-purple-800" {...props} />,
-                  p: ({node, ...props}) => <p className="mb-4" {...props} />,
-                  strong: ({node, ...props}) => <strong className="text-purple-600 font-extrabold" {...props} />,
-                }}
-              >
-                {aiInsights}
-              </ReactMarkdown>
+        {/* Stats Cards (Neumorphic/Glass) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: 'Total Study Time', value: `${stats.totalHours}h`, icon: Clock, color: 'text-purple-400', glow: 'group-hover:shadow-[0_0_20px_-5px_rgba(168,85,247,0.3)]' },
+            { label: 'Active Subjects', value: stats.uniqueSubjects, icon: BookOpen, color: 'text-zinc-300', glow: 'group-hover:shadow-[0_0_20px_-5px_rgba(255,255,255,0.1)]' },
+            { label: 'Avg Session', value: `${stats.avgSession}m`, icon: Calendar, color: 'text-zinc-300', glow: 'group-hover:shadow-[0_0_20px_-5px_rgba(255,255,255,0.1)]' },
+            { label: 'Total Sessions', value: sessions.length, icon: TrendingUp, color: 'text-purple-400', glow: 'group-hover:shadow-[0_0_20px_-5px_rgba(168,85,247,0.3)]' },
+          ].map((item, i) => (
+            <div key={i} className={`bg-zinc-900/40 border border-white/5 rounded-2xl p-5 backdrop-blur-md transition-all duration-300 hover:bg-zinc-900/80 hover:border-white/10 group ${item.glow}`}>
+               <div className="flex justify-between items-start mb-4">
+                 <div className="p-2.5 rounded-lg bg-white/5 border border-white/5 group-hover:bg-white/10 transition-colors">
+                   <item.icon className={cn("w-5 h-5", item.color)} />
+                 </div>
+               </div>
+               <p className="text-zinc-500 text-xs font-medium tracking-wide uppercase">{item.label}</p>
+               <h3 className="text-3xl font-semibold text-white mt-1.5 tracking-tight">{loading ? <Skeleton className="h-9 w-20 bg-zinc-800" /> : item.value}</h3>
             </div>
+          ))}
+        </div>
+
+        {/* AI Insights Hero Card */}
+        <div className="relative overflow-hidden rounded-3xl bg-zinc-900/40 border border-purple-500/20 backdrop-blur-xl group transition-all hover:border-purple-500/40 hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.2)]">
+          <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-10 transition-opacity duration-700 pointer-events-none">
+            <Sparkles className="w-48 h-48 text-purple-400" />
           </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Charts & Form */}
-        <div className="lg:col-span-2 flex flex-col gap-8">
-          {/* Charts Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white border border-purple-100 rounded-3xl p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-purple-900 mb-6 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-purple-600" />
-                Weekly Progress
-              </h3>
-              <div className="h-[300px] w-full min-h-[300px] bg-purple-50/20 rounded-2xl p-2">
-                {loading ? <Skeleton className="h-full w-full rounded-2xl" /> : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={stats.weeklyData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e9d5ff" vertical={false} />
-                      <XAxis dataKey="date" stroke="#9333ea" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#9333ea" fontSize={12} tickLine={false} axisLine={false} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e9d5ff', borderRadius: '12px', fontWeight: 'bold' }}
-                        itemStyle={{ color: '#7e22ce' }}
-                      />
-                      <Line type="monotone" dataKey="minutes" stroke="#9333ea" strokeWidth={3} dot={{ r: 4, fill: '#9333ea' }} activeDot={{ r: 6 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-white border border-purple-100 rounded-3xl p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-purple-900 mb-6 flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-purple-600" />
-                Time per Subject
-              </h3>
-              <div className="h-[300px] w-full min-h-[300px] bg-purple-50/20 rounded-2xl p-2">
-                {loading ? <Skeleton className="h-full w-full rounded-2xl" /> : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={stats.subjectData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e9d5ff" vertical={false} />
-                      <XAxis dataKey="name" stroke="#9333ea" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#9333ea" fontSize={12} tickLine={false} axisLine={false} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e9d5ff', borderRadius: '12px', fontWeight: 'bold' }}
-                        cursor={{ fill: '#f5f3ff' }}
-                      />
-                      <Bar dataKey="value" fill="#9333ea" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Sessions List */}
-          <div className="bg-white border border-purple-100 rounded-3xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-extrabold text-purple-900">Recent Sessions</h3>
-              <div className="flex items-center gap-3">
-                <select 
-                  value={subjectFilter}
-                  onChange={(e) => setSubjectFilter(e.target.value)}
-                  className="bg-purple-50 border border-purple-100 rounded-full text-xs text-purple-900 font-bold py-1.5 px-4 outline-none focus:ring-1 focus:ring-purple-500"
-                >
-                  <option value="all">All Subjects</option>
-                  {subjects.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {loading ? [...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />) : 
-               filteredSessions.length === 0 ? (
-                <div className="text-center py-20 bg-purple-50/30 rounded-3xl border border-dashed border-purple-200">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                    <BookOpen className="w-8 h-8 text-purple-200" />
-                  </div>
-                  <p className="text-purple-900 font-extrabold">No sessions found</p>
-                  <p className="text-sm text-purple-900/40 mt-1 font-bold">Try adjusting your filters or log a new session.</p>
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
+          
+          <div className="p-8 md:p-10 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div className="max-w-2xl">
+              <h2 className="text-2xl font-semibold text-white flex items-center gap-3 tracking-tight">
+                <div className="p-2 bg-purple-500/20 rounded-lg border border-purple-500/30 text-purple-400">
+                  <Sparkles className="w-5 h-5" />
                 </div>
+                Intelligence Center
+              </h2>
+              <p className="text-zinc-400 mt-4 text-sm leading-relaxed">
+                Unlock deep insights into your learning habits. Our AI analyzes your session metadata, duration patterns, and subject focus to generate highly personalized, actionable recommendations to elevate your performance.
+              </p>
+            </div>
+            <button 
+              onClick={generateInsights}
+              disabled={generating || sessions.length === 0}
+              className="flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-black hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-500 font-semibold rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] active:scale-[0.98] whitespace-nowrap"
+            >
+              {generating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  Processing...
+                </>
               ) : (
-                filteredSessions.slice(0, 5).map((session) => (
-                  <div key={session._id} className="group relative bg-purple-50/20 hover:bg-white border border-purple-50 hover:border-purple-200 p-5 rounded-2xl transition-all duration-300 hover:shadow-sm">
-                    <div className="flex justify-between items-center">
-                      <div className="flex gap-4 items-center">
-                        <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all shadow-sm">
-                          <BookOpen className="w-5 h-5" />
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Generate AI Report
+                </>
+              )}
+            </button>
+          </div>
+
+          {aiInsights && (
+            <div className="mx-8 mb-8 p-6 bg-black/40 border border-purple-500/20 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-500 backdrop-blur-sm">
+              <div className="prose prose-invert prose-purple max-w-none text-zinc-300 text-sm leading-relaxed">
+                <ReactMarkdown 
+                  components={{
+                    h2: ({node, ...props}) => <h3 className="text-lg font-semibold text-white mb-4 mt-6 first:mt-0 tracking-tight" {...props} />,
+                    h3: ({node, ...props}) => <h4 className="text-base font-medium text-purple-300 mb-3" {...props} />,
+                    ul: ({node, ...props}) => <ul className="list-disc pl-5 space-y-2 mb-4 text-zinc-300 marker:text-purple-500" {...props} />,
+                    li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                    p: ({node, ...props}) => <p className="mb-4" {...props} />,
+                    strong: ({node, ...props}) => <strong className="text-white font-semibold" {...props} />,
+                  }}
+                >
+                  {aiInsights}
+                </ReactMarkdown>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content Area */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6 backdrop-blur-md">
+                <div className="flex items-center gap-2 mb-8">
+                  <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+                  <h3 className="text-sm font-semibold text-zinc-200 tracking-wide">Velocity</h3>
+                </div>
+                <div className="h-[240px] w-full">
+                  {loading ? <Skeleton className="h-full w-full rounded-2xl bg-zinc-800" /> : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={stats.weeklyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                        <XAxis dataKey="date" stroke="#71717a" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                        <YAxis stroke="#71717a" fontSize={11} tickLine={false} axisLine={false} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px', color: '#f4f4f5', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                          itemStyle={{ color: '#c084fc', fontWeight: '500' }}
+                          cursor={{ stroke: '#3f3f46', strokeWidth: 1, strokeDasharray: '4 4' }}
+                        />
+                        <Line type="monotone" dataKey="minutes" stroke="#a855f7" strokeWidth={2.5} dot={{ r: 0 }} activeDot={{ r: 5, fill: '#a855f7', stroke: '#fff', strokeWidth: 2 }} animationDuration={1500} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6 backdrop-blur-md">
+                <div className="flex items-center gap-2 mb-8">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                  <h3 className="text-sm font-semibold text-zinc-200 tracking-wide">Distribution</h3>
+                </div>
+                <div className="h-[240px] w-full">
+                  {loading ? <Skeleton className="h-full w-full rounded-2xl bg-zinc-800" /> : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={stats.subjectData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                        <XAxis dataKey="name" stroke="#71717a" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                        <YAxis stroke="#71717a" fontSize={11} tickLine={false} axisLine={false} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px', color: '#f4f4f5', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+                          cursor={{ fill: '#27272a', opacity: 0.4 }}
+                          itemStyle={{ color: '#60a5fa', fontWeight: '500' }}
+                        />
+                        <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={40} animationDuration={1500}>
+                          {stats.subjectData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#8b5cf6' : '#6366f1'} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Sessions List */}
+            <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6 backdrop-blur-md">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-white tracking-tight">Recent Activity</h3>
+                <div className="relative">
+                  <select 
+                    value={subjectFilter}
+                    onChange={(e) => setSubjectFilter(e.target.value)}
+                    className="appearance-none bg-zinc-800/50 border border-white/10 rounded-lg text-xs text-zinc-300 font-medium py-2 pl-3 pr-8 outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer hover:bg-zinc-800 transition-colors"
+                  >
+                    <option value="all">All Subjects</option>
+                    {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-zinc-500">
+                    <Filter className="w-3 h-3" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {loading ? [...Array(3)].map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-2xl bg-zinc-800" />) : 
+                 filteredSessions.length === 0 ? (
+                  <div className="text-center py-16 bg-zinc-900/50 rounded-2xl border border-dashed border-white/10">
+                    <div className="w-12 h-12 bg-zinc-800/50 rounded-xl flex items-center justify-center mx-auto mb-4 border border-white/5">
+                      <BookOpen className="w-5 h-5 text-zinc-500" />
+                    </div>
+                    <p className="text-zinc-300 font-medium text-sm">No activity found</p>
+                    <p className="text-xs text-zinc-500 mt-1">Adjust filters or log a new session.</p>
+                  </div>
+                ) : (
+                  filteredSessions.slice(0, 5).map((session) => (
+                    <div key={session._id} className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-zinc-900/30 border border-transparent hover:border-white/5 hover:bg-zinc-800/50 transition-all duration-200">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-purple-400 group-hover:bg-purple-500/10 transition-colors border border-white/5">
+                          <Clock className="w-4 h-4" />
                         </div>
                         <div>
-                          <h4 className="text-purple-900 font-extrabold group-hover:text-purple-700 transition-colors">{session.title}</h4>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-purple-900/50 font-bold uppercase tracking-wider">
-                            <span className="text-purple-600">{session.subject}</span>
-                            <span className="w-1 h-1 rounded-full bg-purple-200" />
-                            <span>{session.duration} mins</span>
-                            <span className="w-1 h-1 rounded-full bg-purple-200" />
-                            <span>{new Date(session.date).toLocaleDateString()}</span>
+                          <h4 className="text-sm font-semibold text-zinc-100 group-hover:text-white transition-colors">{session.title}</h4>
+                          <div className="flex items-center gap-2 mt-1 text-[11px] text-zinc-500 font-medium">
+                            <span className="px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-white/5">{session.subject}</span>
+                            <span>•</span>
+                            <span>{session.duration}m</span>
+                            <span>•</span>
+                            <span>{new Date(session.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                         {session.notes && (
                           <button 
                             onClick={() => summarizeNotes(session.notes!, session.title)}
                             title="Summarize Notes"
-                            className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
+                            className="p-2 text-zinc-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-colors"
                           >
                             <Sparkles className="w-4 h-4" />
                           </button>
@@ -425,69 +446,69 @@ export default function Dashboard() {
                           duration: session.duration,
                           date: new Date(session.date).toISOString().split('T')[0],
                           notes: session.notes || ""
-                        })} className="p-2 text-purple-300 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all">
+                        })} className="p-2 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 rounded-lg transition-colors">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(session._id)} className="p-2 text-purple-300 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-all">
+                        <button onClick={() => handleDelete(session._id)} className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Form Container */}
-        <div className="lg:col-span-1">
-          <div className="bg-white border border-purple-100 rounded-3xl p-8 shadow-md sticky top-28">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-2.5 rounded-xl bg-purple-100">
-                <Plus className="w-5 h-5 text-purple-600" />
-              </div>
-              <h2 className="text-xl font-extrabold text-purple-900">{editingId ? 'Edit Session' : 'New Session'}</h2>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-purple-900/40 uppercase tracking-widest ml-1">Title</label>
-                <input required type="text" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className="w-full bg-purple-50 border border-purple-100 rounded-2xl px-5 py-3.5 text-purple-900 font-bold focus:border-purple-500 outline-none transition-all placeholder:text-purple-200" placeholder="Session Title" />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-purple-900/40 uppercase tracking-widest ml-1">Subject</label>
-                <input required type="text" value={form.subject} onChange={(e) => setForm({...form, subject: e.target.value})} className="w-full bg-purple-50 border border-purple-100 rounded-2xl px-5 py-3.5 text-purple-900 font-bold focus:border-purple-500 outline-none transition-all placeholder:text-purple-200" placeholder="Subject Name" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-purple-900/40 uppercase tracking-widest ml-1">Duration</label>
-                  <input required type="number" value={form.duration} onChange={(e) => setForm({...form, duration: parseInt(e.target.value)})} className="w-full bg-purple-50 border border-purple-100 rounded-2xl px-5 py-3.5 text-purple-900 font-bold focus:border-purple-500 outline-none transition-all" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-purple-900/40 uppercase tracking-widest ml-1">Date</label>
-                  <input required type="date" value={form.date} onChange={(e) => setForm({...form, date: e.target.value})} className="w-full bg-purple-50 border border-purple-100 rounded-2xl px-5 py-3.5 text-purple-900 font-bold focus:border-purple-500 outline-none transition-all" />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-purple-900/40 uppercase tracking-widest ml-1">Notes</label>
-                <textarea rows={3} value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} className="w-full bg-purple-50 border border-purple-100 rounded-2xl px-5 py-3.5 text-purple-900 font-bold focus:border-purple-500 outline-none transition-all resize-none" placeholder="Optional notes..."></textarea>
-              </div>
-
-              <div className="flex gap-4">
-                <button type="submit" className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-2xl font-bold transition-all shadow-md shadow-purple-100 active:scale-[0.98]">
-                  {editingId ? "Update Session" : "Save Session"}
-                </button>
-                {editingId && (
-                  <button type="button" onClick={() => setEditingId(null)} className="px-6 bg-purple-50 text-purple-600 rounded-2xl hover:bg-purple-100 transition-all font-bold">
-                    Cancel
-                  </button>
+                  ))
                 )}
               </div>
-            </form>
+            </div>
+          </div>
+
+          {/* Sidebar / Form */}
+          <div className="lg:col-span-1">
+            <div className="bg-zinc-900/60 border border-white/5 rounded-3xl p-6 backdrop-blur-xl sticky top-6 shadow-2xl shadow-black/50">
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
+                <div className="p-2 rounded-lg bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                  {editingId ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                </div>
+                <h2 className="text-lg font-semibold text-white tracking-tight">{editingId ? 'Edit Record' : 'New Record'}</h2>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Title</label>
+                  <input required type="text" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 outline-none transition-all placeholder:text-zinc-600" placeholder="e.g. Advanced Calculus" />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Subject</label>
+                  <input required type="text" value={form.subject} onChange={(e) => setForm({...form, subject: e.target.value})} className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 outline-none transition-all placeholder:text-zinc-600" placeholder="e.g. Mathematics" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Duration (min)</label>
+                    <input required type="number" value={form.duration} onChange={(e) => setForm({...form, duration: parseInt(e.target.value)})} className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 outline-none transition-all" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Date</label>
+                    <input required type="date" value={form.date} onChange={(e) => setForm({...form, date: e.target.value})} className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 outline-none transition-all" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Notes (Optional)</label>
+                  <textarea rows={3} value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} className="w-full bg-zinc-950/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 outline-none transition-all resize-none placeholder:text-zinc-600" placeholder="Markdown supported..."></textarea>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button type="submit" className="flex-1 bg-white text-black hover:bg-zinc-200 py-3 rounded-xl text-sm font-semibold transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-[0.98]">
+                    {editingId ? "Update Record" : "Save Record"}
+                  </button>
+                  {editingId && (
+                    <button type="button" onClick={() => setEditingId(null)} className="px-4 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-zinc-700 hover:text-white transition-all text-sm font-medium">
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>

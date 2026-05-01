@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     await connectDB();
 
     const user = await User.findOne({ email }).select("+password");
-    if (!user) {
+    if (!user || !user.password) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 

@@ -440,13 +440,16 @@ export default function Dashboard() {
                             <Sparkles className="w-4 h-4" />
                           </button>
                         )}
-                        <button onClick={() => setEditingId(session._id) || setForm({
-                          title: session.title,
-                          subject: session.subject,
-                          duration: session.duration,
-                          date: new Date(session.date).toISOString().split('T')[0],
-                          notes: session.notes || ""
-                        })} className="p-2 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 rounded-lg transition-colors">
+                        <button onClick={() => {
+                          setEditingId(session._id);
+                          setForm({
+                            title: session.title,
+                            subject: session.subject,
+                            duration: session.duration,
+                            date: new Date(session.date).toISOString().split('T')[0],
+                            notes: session.notes || ""
+                          });
+                        }} className="p-2 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 rounded-lg transition-colors">
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDelete(session._id)} className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">

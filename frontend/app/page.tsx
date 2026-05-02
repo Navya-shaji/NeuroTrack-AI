@@ -185,28 +185,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Stats / Proof Section */}
-        <section className="py-24 bg-indigo-950 text-white relative overflow-hidden rounded-[4rem] mx-6 mb-32 shadow-3xl">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/50 to-violet-900/50" />
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.05]" />
-          
-          <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
-            {[
-              { label: 'Study Sessions Logged', value: '2.4M+' },
-              { label: 'Active Learners', value: '150K+' },
-              { label: 'Improvement in Retention', value: '42%' },
-            ].map((stat) => (
-              <div key={stat.label} className="group">
-                <div className="text-5xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-b from-white to-indigo-300">
-                  {stat.value}
-                </div>
-                <div className="text-indigo-200/60 font-bold uppercase tracking-widest text-xs">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
       </main>
     </div>
   );

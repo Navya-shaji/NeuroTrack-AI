@@ -513,25 +513,25 @@ export default function Dashboard() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest">Session Title</label>
-                  <input required type="text" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200", errors.title && "border-rose-500 focus:border-rose-500")} placeholder="e.g. Quantum Mechanics" />
+                  <input type="text" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200", errors.title && "border-rose-500 focus:border-rose-500")} placeholder="e.g. Quantum Mechanics" />
                   {errors.title && <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider ml-1">{errors.title}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest">Topic / Subject</label>
-                  <input required type="text" value={form.subject} onChange={(e) => setForm({...form, subject: e.target.value})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200", errors.subject && "border-rose-500 focus:border-rose-500")} placeholder="e.g. Physics" />
+                  <input type="text" value={form.subject} onChange={(e) => setForm({...form, subject: e.target.value})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200", errors.subject && "border-rose-500 focus:border-rose-500")} placeholder="e.g. Physics" />
                   {errors.subject && <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider ml-1">{errors.subject}</p>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest">Mins</label>
-                    <input required type="number" value={form.duration} onChange={(e) => setForm({...form, duration: parseInt(e.target.value)})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all", errors.duration && "border-rose-500 focus:border-rose-500")} />
+                    <input type="number" value={form.duration} onChange={(e) => setForm({...form, duration: parseInt(e.target.value)})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all", errors.duration && "border-rose-500 focus:border-rose-500")} />
                     {errors.duration && <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider ml-1">{errors.duration}</p>}
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest">Date</label>
-                    <input required type="date" value={form.date} onChange={(e) => setForm({...form, date: e.target.value})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all", errors.date && "border-rose-500 focus:border-rose-500")} />
+                    <input type="date" value={form.date} onChange={(e) => setForm({...form, date: e.target.value})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all", errors.date && "border-rose-500 focus:border-rose-500")} />
                     {errors.date && <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider ml-1">{errors.date}</p>}
                   </div>
                 </div>

@@ -17,6 +17,15 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Toast, ToastType } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { z } from "zod";
+
+const sessionSchema = z.object({
+  title: z.string().min(1, "Title is required").max(100, "Title too long"),
+  subject: z.string().min(1, "Subject is required").max(50, "Subject too long"),
+  duration: z.number().min(1, "Minimum 1 minute").max(1440, "Maximum 24 hours"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
+  notes: z.string().max(2000, "Notes too long").optional(),
+});
 
 interface Session {
   _id: string;
@@ -53,6 +62,7 @@ export default function Dashboard() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ title: "", subject: "", duration: 30, date: "", notes: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [aiInsights, setAiInsights] = useState<string | null>(null);
@@ -127,16 +137,20 @@ export default function Dashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    
     try {
+      const validatedData = sessionSchema.parse({
+        ...form,
+        duration: Number(form.duration),
+      });
+
       const url = editingId ? `/api/sessions/${editingId}` : "/api/sessions";
       const method = editingId ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          duration: Number(form.duration),
-        }),
+        body: JSON.stringify(validatedData),
       });
 
       if (!res.ok) {
@@ -149,7 +163,16 @@ export default function Dashboard() {
       setEditingId(null);
       fetchSessions();
     } catch (err: any) {
-      showToast(err.message, 'error');
+      if (err instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        err.issues.forEach((e) => {
+          if (e.path[0]) fieldErrors[e.path[0] as string] = e.message;
+        });
+        setErrors(fieldErrors);
+        showToast("Please check the form for errors", 'error');
+      } else {
+        showToast(err.message, 'error');
+      }
     }
   };
 
@@ -490,35 +513,40 @@ export default function Dashboard() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest">Session Title</label>
-                  <input required type="text" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className="w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200" placeholder="e.g. Quantum Mechanics" />
+                  <input required type="text" value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200", errors.title && "border-rose-500 focus:border-rose-500")} placeholder="e.g. Quantum Mechanics" />
+                  {errors.title && <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider ml-1">{errors.title}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest">Topic / Subject</label>
-                  <input required type="text" value={form.subject} onChange={(e) => setForm({...form, subject: e.target.value})} className="w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200" placeholder="e.g. Physics" />
+                  <input required type="text" value={form.subject} onChange={(e) => setForm({...form, subject: e.target.value})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200", errors.subject && "border-rose-500 focus:border-rose-500")} placeholder="e.g. Physics" />
+                  {errors.subject && <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider ml-1">{errors.subject}</p>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest">Mins</label>
-                    <input required type="number" value={form.duration} onChange={(e) => setForm({...form, duration: parseInt(e.target.value)})} className="w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all" />
+                    <input required type="number" value={form.duration} onChange={(e) => setForm({...form, duration: parseInt(e.target.value)})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all", errors.duration && "border-rose-500 focus:border-rose-500")} />
+                    {errors.duration && <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider ml-1">{errors.duration}</p>}
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest">Date</label>
-                    <input required type="date" value={form.date} onChange={(e) => setForm({...form, date: e.target.value})} className="w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all" />
+                    <input required type="date" value={form.date} onChange={(e) => setForm({...form, date: e.target.value})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all", errors.date && "border-rose-500 focus:border-rose-500")} />
+                    {errors.date && <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider ml-1">{errors.date}</p>}
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest">Cognitive Notes</label>
-                  <textarea rows={4} value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} className="w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all resize-none placeholder:text-indigo-200" placeholder="Key concepts, breakthroughs..."></textarea>
+                  <textarea rows={4} value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all resize-none placeholder:text-indigo-200", errors.notes && "border-rose-500 focus:border-rose-500")} placeholder="Key concepts, breakthroughs..."></textarea>
+                  {errors.notes && <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider ml-1">{errors.notes}</p>}
                 </div>
 
                 <button type="submit" className="w-full bg-indigo-600 text-white hover:bg-indigo-700 py-5 rounded-2xl text-lg font-black transition-all shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98]">
                   {editingId ? "Update Intelligence" : "Commit to Neural Log"}
                 </button>
                 {editingId && (
-                  <button type="button" onClick={() => { setEditingId(null); setForm({title: "", subject: "", duration: 30, date: new Date().toISOString().split('T')[0], notes: ""}); }} className="w-full bg-indigo-50 text-indigo-600 font-bold py-4 rounded-2xl hover:bg-indigo-100 transition-all">
+                  <button type="button" onClick={() => { setEditingId(null); setForm({title: "", subject: "", duration: 30, date: new Date().toISOString().split('T')[0], notes: ""}); setErrors({}); }} className="w-full bg-indigo-50 text-indigo-600 font-bold py-4 rounded-2xl hover:bg-indigo-100 transition-all">
                     Discard Edits
                   </button>
                 )}

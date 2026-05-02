@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { Brain, ArrowRight, Mail, Lock, User, Sparkles } from "lucide-react";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -18,7 +20,6 @@ export default function SignupPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +36,7 @@ export default function SignupPage() {
       if (!res.ok) throw new Error(data.error || "Signup failed");
 
       await refreshUser();
-      router.push("/");
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -46,99 +47,112 @@ export default function SignupPage() {
   if (!isMounted) return null;
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] flex-1 flex-col justify-center px-6 py-12 lg:px-8 relative overflow-hidden bg-white">
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-50/50 rounded-full blur-[120px] -z-10 pointer-events-none" />
-
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-white/90 backdrop-blur-xl border border-purple-100 rounded-3xl p-10 shadow-xl">
+    <div className="min-h-screen bg-mesh flex items-center justify-center p-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md"
+      >
+        <div className="glass rounded-[2.5rem] border border-indigo-100 shadow-2xl p-8 md:p-12">
+          {/* Header */}
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-extrabold tracking-tight text-purple-900">Create account</h2>
-            <p className="mt-3 text-sm text-purple-900/40 font-bold">Join NeuroTrack AI and optimize your studies.</p>
+            <Link href="/" className="inline-flex items-center gap-2.5 mb-8 group">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-100 group-hover:scale-110 transition-transform duration-300">
+                <Brain className="w-7 h-7" />
+              </div>
+            </Link>
+            <h1 className="text-3xl font-black text-indigo-950 tracking-tight">Create Account</h1>
+            <p className="text-indigo-900/50 font-bold mt-2">Start your journey with NeuroTrack AI</p>
           </div>
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            {error && (
-              <div className="bg-purple-50 border border-purple-100 text-purple-600 p-4 rounded-xl text-sm text-center font-extrabold">
-                {error}
-              </div>
-            )}
+          {/* Error Message */}
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-bold text-center"
+            >
+              {error}
+            </motion.div>
+          )}
 
-            <div>
-              <label htmlFor="name" className="block text-sm font-bold text-purple-900/60 mb-2">
-                Full Name
-              </label>
-              <div className="mt-2">
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest ml-1">Full Name</label>
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-300 group-focus-within:text-indigo-600 transition-colors" />
+                <input 
                   required
+                  type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="block w-full rounded-2xl border border-purple-100 bg-purple-50/20 py-3.5 px-5 text-purple-900 font-bold shadow-sm ring-1 ring-inset ring-purple-100/50 focus:ring-2 focus:ring-inset focus:ring-purple-600 sm:text-sm sm:leading-6 placeholder:text-purple-200 transition-all outline-none"
                   placeholder="John Doe"
+                  className="w-full pl-12 pr-5 py-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200"
                 />
               </div>
             </div>
-            
-            <div>
-              <label htmlFor="email" className="block text-sm font-bold text-purple-900/60 mb-2">
-                Email address
-              </label>
-              <div className="mt-2">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
+
+            <div className="space-y-2">
+              <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest ml-1">Email Address</label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-300 group-focus-within:text-indigo-600 transition-colors" />
+                <input 
                   required
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full rounded-2xl border border-purple-100 bg-purple-50/20 py-3.5 px-5 text-purple-900 font-bold shadow-sm ring-1 ring-inset ring-purple-100/50 focus:ring-2 focus:ring-inset focus:ring-purple-600 sm:text-sm sm:leading-6 placeholder:text-purple-200 transition-all outline-none"
-                  placeholder="you@example.com"
+                  placeholder="name@example.com"
+                  className="w-full pl-12 pr-5 py-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200"
                 />
               </div>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-bold text-purple-900/60 mb-2">
-                Password
-              </label>
-              <div className="mt-2">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
+            <div className="space-y-2">
+              <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest ml-1">Password</label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-300 group-focus-within:text-indigo-600 transition-colors" />
+                <input 
                   required
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-2xl border border-purple-100 bg-purple-50/20 py-3.5 px-5 text-purple-900 font-bold shadow-sm ring-1 ring-inset ring-purple-100/50 focus:ring-2 focus:ring-inset focus:ring-purple-600 sm:text-sm sm:leading-6 placeholder:text-purple-200 transition-all outline-none"
                   placeholder="••••••••"
+                  className="w-full pl-12 pr-5 py-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200"
                 />
               </div>
             </div>
 
-            <button
+            <button 
               type="submit"
               disabled={loading}
-              className="flex w-full justify-center rounded-2xl bg-purple-600 px-4 py-4 text-sm font-bold leading-6 text-white shadow-lg shadow-purple-100 hover:bg-purple-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 disabled:opacity-50 transition-all hover:shadow-purple-200 active:scale-[0.98] mt-8"
+              className="w-full bg-indigo-600 text-white hover:bg-indigo-700 py-4 rounded-2xl text-lg font-black transition-all shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group mt-8"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : "Create Free Account"}
+              ) : (
+                <>
+                  Create Account <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </button>
           </form>
 
-          <p className="mt-10 text-center text-sm text-purple-900/40 font-bold">
+          {/* Footer Link */}
+          <p className="mt-10 text-center text-sm font-bold text-indigo-900/40">
             Already have an account?{" "}
-            <Link href="/login" className="font-extrabold leading-6 text-purple-600 hover:text-purple-700 transition-colors underline underline-offset-4">
-              Sign in instead
+            <Link href="/login" className="text-indigo-600 hover:text-indigo-700 transition-colors font-black underline underline-offset-4 decoration-2">
+              Sign In
             </Link>
           </p>
         </div>
-      </div>
+        
+        {/* Security Badge */}
+        <div className="mt-8 flex items-center justify-center gap-2 text-indigo-900/30 text-[10px] font-black uppercase tracking-[0.2em]">
+          <Sparkles className="w-3 h-3" />
+          Join thousands of learners worldwide
+        </div>
+      </motion.div>
     </div>
   );
 }

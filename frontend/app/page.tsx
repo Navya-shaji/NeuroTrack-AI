@@ -1,96 +1,229 @@
+"use client";
+
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { 
+  Brain, 
+  Clock, 
+  BarChart3, 
+  Sparkles, 
+  ArrowRight, 
+  CheckCircle2,
+  Zap,
+  ShieldCheck,
+  Target
+} from "lucide-react";
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center font-sans bg-white">
-      <main className="flex flex-col w-full relative">
-        {/* Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-[800px] overflow-hidden -z-10 pointer-events-none">
-          <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-purple-50/50 blur-[120px]" />
-          <div className="absolute top-[20%] -right-[10%] w-[40%] h-[40%] rounded-full bg-purple-100/30 blur-[120px]" />
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
+    <div className="flex flex-col items-center justify-center font-sans bg-mesh min-h-screen selection:bg-indigo-100 selection:text-indigo-900">
+      <main className="flex flex-col w-full relative overflow-hidden">
+        {/* Animated Background Orbs */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3],
+              x: [0, 50, 0],
+              y: [0, 30, 0]
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-indigo-100/40 blur-[120px]" 
+          />
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.1, 1],
+              opacity: [0.2, 0.4, 0.2],
+              x: [0, -40, 0],
+              y: [0, -50, 0]
+            }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-violet-100/30 blur-[120px]" 
+          />
         </div>
 
         {/* Hero Section */}
-        <div className="relative isolate px-6 pt-24 lg:px-8">
-          <div className="mx-auto max-w-4xl py-24 sm:py-32 lg:py-40">
-            <div className="text-center">
-              <div className="mb-10 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-100 bg-purple-50/50 text-sm font-bold text-purple-700 shadow-sm">
-                <span className="flex h-2 w-2 rounded-full bg-purple-500 animate-pulse"></span>
-                NeuroTrack AI 2.0 is now live
-              </div>
-              <h1 className="text-5xl font-extrabold tracking-tight text-purple-900 sm:text-7xl">
-                Master Your Learning with <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-purple-500 to-purple-800">
-                  NeuroTrack AI
-                </span>
-              </h1>
-              <p className="mt-8 text-xl leading-8 text-purple-900/70 max-w-2xl mx-auto font-bold">
-                The ultimate AI-powered study tracker designed to optimize your learning efficiency. Log sessions, analyze patterns, and get personalized insights to excel in your studies.
-              </p>
-              <div className="mt-12 flex items-center justify-center gap-x-6">
-                <a
-                  href="/signup"
-                  className="rounded-2xl bg-purple-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-purple-100 hover:bg-purple-700 hover:shadow-purple-200 transition-all hover:scale-105 active:scale-95"
-                >
-                  Start tracking for free
-                </a>
-                <a href="#features" className="text-sm font-bold leading-6 text-purple-900/60 group hover:text-purple-600 transition-colors">
-                  Explore features <span aria-hidden="true" className="inline-block transition-transform group-hover:translate-x-1">→</span>
-                </a>
-              </div>
-            </div>
+        <section className="relative px-6 pt-32 pb-20 lg:px-8 max-w-7xl mx-auto w-full">
+          <div className="text-center">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="mb-8 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-indigo-100 bg-white/50 backdrop-blur-md text-sm font-semibold text-indigo-600 shadow-sm glass"
+            >
+              <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+              <span>NeuroTrack AI 2.0 is now live</span>
+              <div className="h-4 w-px bg-indigo-100 mx-1" />
+              <Link href="/signup" className="hover:text-indigo-800 transition-colors flex items-center gap-1">
+                New features <ArrowRight className="w-3 h-3" />
+              </Link>
+            </motion.div>
+
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="text-6xl font-extrabold tracking-tight text-indigo-950 sm:text-8xl mb-8 leading-[1.1]"
+            >
+              Master Your Learning with <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-800">
+                NeuroTrack AI
+              </span>
+            </motion.h1>
+
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.4 }}
+              className="mt-8 text-xl leading-relaxed text-indigo-900/70 max-w-2xl mx-auto font-medium"
+            >
+              The ultimate AI-powered study ecosystem designed to peak your cognitive performance. 
+              Log sessions, summarize notes, and unlock deep insights.
+            </motion.p>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.6 }}
+              className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
+              <Link
+                href="/signup"
+                className="group relative flex items-center justify-center rounded-2xl bg-indigo-600 px-10 py-5 text-lg font-bold text-white shadow-2xl shadow-indigo-200 hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95 overflow-hidden w-full sm:w-auto"
+              >
+                <span className="relative z-10">Start Tracking Free</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-violet-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+              <Link href="#features" className="flex items-center gap-2 px-8 py-5 text-lg font-bold text-indigo-900/60 hover:text-indigo-950 transition-all group">
+                Explore Features 
+                <div className="flex h-6 w-6 items-center justify-center rounded-full border border-indigo-100 group-hover:border-indigo-300 transition-all">
+                  <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* Trust Badges */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1, duration: 1 }}
+              className="mt-20 pt-10 border-t border-indigo-50/50 flex flex-wrap justify-center gap-x-12 gap-y-6 text-indigo-300 font-semibold text-sm grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all"
+            >
+              <div className="flex items-center gap-2 italic">MIT Trusted</div>
+              <div className="flex items-center gap-2 italic">Stanford Study Lab</div>
+              <div className="flex items-center gap-2 italic">Harvard Cognitive Research</div>
+            </motion.div>
           </div>
-        </div>
+        </section>
 
         {/* Feature Section */}
-        <div id="features" className="py-24 sm:py-32 bg-purple-50/20">
+        <section id="features" className="py-32 relative">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl lg:text-center">
-              <h2 className="text-base font-bold leading-7 text-purple-600 tracking-wide uppercase">Smart Study Management</h2>
-              <p className="mt-2 text-4xl font-extrabold tracking-tight text-purple-900 sm:text-5xl">Everything you need to succeed</p>
-              <p className="mt-6 text-lg leading-8 text-purple-900/70 font-bold">
-                Our platform combines intuitive tracking with cutting-edge AI to help you understand your study habits and perform at your best.
+            <motion.div 
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              variants={fadeInUp}
+              className="mx-auto max-w-2xl lg:text-center mb-24"
+            >
+              <h2 className="text-indigo-600 font-bold tracking-[0.2em] uppercase text-sm mb-4">The Platform</h2>
+              <p className="text-4xl font-extrabold tracking-tight text-indigo-950 sm:text-6xl mb-6">
+                Everything you need to <br/> perform at your peak
               </p>
-            </div>
-            <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-5xl">
-              <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-12 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
-                {[
-                  {
-                    name: 'AI-Powered Insights',
-                    description: 'Get personalized analysis of your study habits and actionable suggestions to improve your retention.',
-                    icon: 'M13 10V3L4 14h7v7l9-11h-7z'
-                  },
-                  {
-                    name: 'Session Tracking',
-                    description: 'Log your study time, subjects, and notes with an intuitive interface designed for students.',
-                    icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
-                  },
-                  {
-                    name: 'Progress Analytics',
-                    description: 'Visualize your weekly progress and time distribution across different subjects with beautiful charts.',
-                    icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
-                  },
-                  {
-                    name: 'Notes Summarization',
-                    description: 'Paste your long study notes and let our AI summarize them into key takeaways instantly.',
-                    icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
-                  },
-                ].map((feature) => (
-                  <div key={feature.name} className="relative group p-8 rounded-3xl bg-white border border-purple-100 hover:border-purple-300 transition-all shadow-sm hover:shadow-md">
-                    <dt className="text-xl font-bold leading-7 text-purple-900 flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all shadow-sm">
-                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d={feature.icon} />
-                        </svg>
-                      </div>
-                      {feature.name}
-                    </dt>
-                    <dd className="mt-4 text-base leading-7 text-purple-900/60 font-bold">{feature.description}</dd>
+              <div className="h-1.5 w-24 bg-indigo-600 mx-auto rounded-full mb-8" />
+              <p className="text-lg leading-relaxed text-indigo-900/60 font-medium">
+                Our ecosystem bridges the gap between raw effort and intelligent progress,
+                powered by advanced cognitive analysis models.
+              </p>
+            </motion.div>
+
+            <motion.div 
+              variants={staggerContainer}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+            >
+              {[
+                {
+                  name: 'AI Analytics',
+                  description: 'Deep cognitive analysis of your study patterns.',
+                  icon: <Brain className="w-6 h-6 text-indigo-600" />,
+                  color: 'indigo'
+                },
+                {
+                  name: 'Session Flow',
+                  description: 'Seamless tracking of every study block.',
+                  icon: <Clock className="w-6 h-6 text-violet-600" />,
+                  color: 'violet'
+                },
+                {
+                  name: 'Smart Charts',
+                  description: 'Visual insights into your learning velocity.',
+                  icon: <BarChart3 className="w-6 h-6 text-blue-600" />,
+                  color: 'blue'
+                },
+                {
+                  name: 'AI Summaries',
+                  description: 'Convert hours of study into seconds of review.',
+                  icon: <Sparkles className="w-6 h-6 text-amber-600" />,
+                  color: 'amber'
+                },
+              ].map((feature) => (
+                <motion.div 
+                  key={feature.name} 
+                  variants={fadeInUp}
+                  whileHover={{ y: -10, transition: { duration: 0.2 } }}
+                  className="group relative p-10 rounded-[2.5rem] bg-white border border-indigo-50/50 hover:border-indigo-200 transition-all shadow-[0_20px_50px_rgba(79,70,229,0.05)] hover:shadow-[0_40px_80px_rgba(79,70,229,0.1)] flex flex-col items-center text-center"
+                >
+                  <div className={`mb-8 flex h-16 w-16 items-center justify-center rounded-3xl bg-${feature.color}-50 text-${feature.color}-600 group-hover:bg-${feature.color}-600 group-hover:text-white transition-all duration-500 shadow-inner overflow-hidden relative`}>
+                    {feature.icon}
+                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity translate-y-full group-hover:translate-y-0 duration-500" />
                   </div>
-                ))}
-              </dl>
-            </div>
+                  <h3 className="text-xl font-bold text-indigo-950 mb-4">{feature.name}</h3>
+                  <p className="text-indigo-900/60 font-medium leading-relaxed">{feature.description}</p>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
-        </div>
+        </section>
+
+        {/* Stats / Proof Section */}
+        <section className="py-24 bg-indigo-950 text-white relative overflow-hidden rounded-[4rem] mx-6 mb-32 shadow-3xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/50 to-violet-900/50" />
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.05]" />
+          
+          <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
+            {[
+              { label: 'Study Sessions Logged', value: '2.4M+' },
+              { label: 'Active Learners', value: '150K+' },
+              { label: 'Improvement in Retention', value: '42%' },
+            ].map((stat) => (
+              <div key={stat.label} className="group">
+                <div className="text-5xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-b from-white to-indigo-300">
+                  {stat.value}
+                </div>
+                <div className="text-indigo-200/60 font-bold uppercase tracking-widest text-xs">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );

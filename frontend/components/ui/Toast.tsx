@@ -21,9 +21,9 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'info', onClose })
   }, [onClose]);
 
   const icons = {
-    success: <CheckCircle2 className="w-5 h-5 text-emerald-400" />,
-    error: <AlertCircle className="w-5 h-5 text-rose-400" />,
-    info: <Info className="w-5 h-5 text-indigo-400" />,
+    success: <CheckCircle2 className="w-5 h-5 text-emerald-600" />,
+    error: <AlertCircle className="w-5 h-5 text-rose-600" />,
+    info: <Info className="w-5 h-5 text-indigo-600" />,
   };
 
   const bgColors = {
@@ -38,10 +38,10 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'info', onClose })
       bgColors[type]
     )}>
       {icons[type]}
-      <p className="text-sm font-medium text-slate-200">{message}</p>
+      <p className="text-sm font-bold text-slate-950">{message}</p>
       <button 
         onClick={onClose}
-        className="ml-2 p-1 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white"
+        className="ml-2 p-1 rounded-lg hover:bg-black/5 transition-colors text-slate-500 hover:text-black"
       >
         <X className="w-4 h-4" />
       </button>

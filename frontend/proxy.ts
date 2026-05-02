@@ -38,5 +38,5 @@ return res;
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/signup"],
+  matcher: ["/:path*"],
 };

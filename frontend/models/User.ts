@@ -4,6 +4,8 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password?: string;
+  image?: string;
+  googleId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,8 +23,16 @@ const UserSchema: Schema = new Schema(
     },
     password: {
       type: String,
-      required: true,
-      select: false, // Don't return password by default
+      required: false, // Changed to false for OAuth users
+      select: false,
+    },
+    image: {
+      type: String,
+      required: false,
+    },
+    googleId: {
+      type: String,
+      required: false,
     },
   },
   {

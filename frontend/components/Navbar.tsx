@@ -10,7 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { user, refreshUser } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -21,13 +21,8 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      await refreshUser();
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    await logout();
+    router.push("/login");
   };
 
   const navLinks = [

@@ -99,80 +99,73 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.6 }}
-              className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
+              className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6"
             >
               <Link
                 href="/signup"
-                className="group relative flex items-center justify-center rounded-2xl bg-indigo-600 px-10 py-5 text-lg font-bold text-white shadow-2xl shadow-indigo-200 hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95 overflow-hidden w-full sm:w-auto"
+                className="group relative flex items-center justify-center rounded-2xl bg-indigo-600 px-10 py-5 text-lg font-bold text-white shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto"
               >
-                <span className="relative z-10">Start Tracking Free</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-violet-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                Get Started Free
               </Link>
-              <Link href="#features" className="flex items-center gap-2 px-8 py-5 text-lg font-bold text-indigo-900/60 hover:text-indigo-950 transition-all group">
-                Explore Features 
-                <div className="flex h-6 w-6 items-center justify-center rounded-full border border-indigo-100 group-hover:border-indigo-300 transition-all">
-                  <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
-                </div>
+              <Link href="#features" className="text-lg font-bold text-indigo-900/40 hover:text-indigo-600 transition-colors">
+                View Features
               </Link>
             </motion.div>
 
-            {/* Hero Visual Image */}
+            {/* Simplified Hero Visual */}
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.8 }}
-              className="mt-20 relative mx-auto max-w-5xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1.5, delay: 0.8 }}
+              className="mt-20 max-w-4xl mx-auto px-4"
             >
-              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-violet-600 rounded-[2.5rem] blur opacity-20" />
-              <div className="relative glass rounded-[2.5rem] overflow-hidden border border-indigo-100 shadow-2xl">
-                <img 
-                  src="/hero-vision.png" 
-                  alt="Neural Intelligence Visualization" 
-                  className="w-full h-auto object-cover opacity-90 hover:scale-105 transition-transform duration-1000"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-40" />
-              </div>
-              
-              {/* Floating elements to add depth */}
-              <motion.div 
-                animate={{ y: [0, -15, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-10 -right-10 hidden lg:block glass p-6 rounded-3xl border border-indigo-100 shadow-xl z-10"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-sm font-black text-indigo-950 tracking-tight">System Optimized</span>
+              <div className="relative group">
+                <div className="absolute -inset-4 bg-indigo-50 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                <div className="relative bg-white/40 backdrop-blur-sm rounded-[3rem] p-4 border border-indigo-50/50 shadow-sm overflow-hidden">
+                  <img 
+                    src="/hero-minimal.png" 
+                    alt="NeuroTrack Intelligence" 
+                    className="w-full h-auto rounded-[2.5rem] mix-blend-multiply opacity-80"
+                  />
                 </div>
-              </motion.div>
+              </div>
             </motion.div>
 
-            {/* Trust Badges */}
+            {/* Simplified Stats/Badges */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2, duration: 1 }}
-              className="mt-20 pt-10 border-t border-indigo-50/50 flex flex-wrap justify-center gap-x-12 gap-y-6 text-indigo-300 font-semibold text-sm grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all"
+              className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
             >
-              <div className="flex items-center gap-2 italic">MIT Trusted</div>
-              <div className="flex items-center gap-2 italic">Stanford Study Lab</div>
-              <div className="flex items-center gap-2 italic">Harvard Cognitive Research</div>
+              {[
+                { label: "Active Users", value: "10k+" },
+                { label: "AI Insights", value: "1M+" },
+                { label: "Focus Score", value: "98%" },
+                { label: "Global Peak", value: "Top 1%" }
+              ].map((stat, i) => (
+                <div key={i} className="text-center">
+                  <div className="text-2xl font-black text-indigo-950">{stat.value}</div>
+                  <div className="text-xs font-bold text-indigo-900/30 uppercase tracking-widest mt-1">{stat.label}</div>
+                </div>
+              ))}
             </motion.div>
           </div>
         </section>
 
         {/* Feature Section */}
-        <section id="features" className="py-32 relative">
+        <section id="features" className="py-40 relative">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <motion.div 
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
               variants={fadeInUp}
-              className="mx-auto max-w-2xl lg:text-center mb-24"
+              className="mx-auto max-w-2xl lg:text-center mb-32"
             >
-              <h2 className="text-indigo-600 font-bold tracking-[0.2em] uppercase text-sm mb-4">The Platform</h2>
-              <p className="text-4xl font-extrabold tracking-tight text-indigo-950 sm:text-6xl mb-6">
-                Everything you need to <br/> perform at your peak
+              <h2 className="text-indigo-600 font-bold tracking-[0.2em] uppercase text-xs mb-4">NeuroTrack Platform</h2>
+              <p className="text-4xl font-extrabold tracking-tight text-indigo-950 sm:text-6xl">
+                Peak cognitive <br/> performance.
               </p>
               <div className="h-1.5 w-24 bg-indigo-600 mx-auto rounded-full mb-8" />
               <p className="text-lg leading-relaxed text-indigo-900/60 font-medium">

@@ -110,6 +110,7 @@ export default function Home() {
               <Link href="#features" className="text-lg font-bold text-indigo-900/40 hover:text-indigo-600 transition-colors">
                 View Features
               </Link>
+            </motion.div>
           </div>
         </section>
 

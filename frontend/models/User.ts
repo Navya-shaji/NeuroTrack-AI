@@ -23,7 +23,7 @@ const UserSchema: Schema = new Schema(
     },
     password: {
       type: String,
-      required: false, // Changed to false for OAuth users
+      required: false,
       select: false,
     },
     image: {

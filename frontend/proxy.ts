@@ -32,7 +32,9 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  const res = NextResponse.next();
+res.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+return res;
 }
 
 export const config = {

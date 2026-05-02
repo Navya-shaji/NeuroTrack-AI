@@ -112,25 +112,6 @@ export default function Home() {
               </Link>
             </motion.div>
 
-            {/* Simplified Hero Visual */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1.5, delay: 0.8 }}
-              className="mt-20 max-w-4xl mx-auto px-4"
-            >
-              <div className="relative group">
-                <div className="absolute -inset-4 bg-indigo-50 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                <div className="relative bg-white/40 backdrop-blur-sm rounded-[3rem] p-4 border border-indigo-50/50 shadow-sm overflow-hidden">
-                  <img 
-                    src="/hero-minimal.png" 
-                    alt="NeuroTrack Intelligence" 
-                    className="w-full h-auto rounded-[2.5rem] mix-blend-multiply opacity-80"
-                  />
-                </div>
-              </div>
-            </motion.div>
-
             {/* Simplified Stats/Badges */}
             <motion.div 
               initial={{ opacity: 0 }}

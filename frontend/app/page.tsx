@@ -116,11 +116,41 @@ export default function Home() {
               </Link>
             </motion.div>
 
+            {/* Hero Visual Image */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.8 }}
+              className="mt-20 relative mx-auto max-w-5xl"
+            >
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-violet-600 rounded-[2.5rem] blur opacity-20" />
+              <div className="relative glass rounded-[2.5rem] overflow-hidden border border-indigo-100 shadow-2xl">
+                <img 
+                  src="/hero-vision.png" 
+                  alt="Neural Intelligence Visualization" 
+                  className="w-full h-auto object-cover opacity-90 hover:scale-105 transition-transform duration-1000"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-40" />
+              </div>
+              
+              {/* Floating elements to add depth */}
+              <motion.div 
+                animate={{ y: [0, -15, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -top-10 -right-10 hidden lg:block glass p-6 rounded-3xl border border-indigo-100 shadow-xl z-10"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-sm font-black text-indigo-950 tracking-tight">System Optimized</span>
+                </div>
+              </motion.div>
+            </motion.div>
+
             {/* Trust Badges */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1, duration: 1 }}
+              transition={{ delay: 1.2, duration: 1 }}
               className="mt-20 pt-10 border-t border-indigo-50/50 flex flex-wrap justify-center gap-x-12 gap-y-6 text-indigo-300 font-semibold text-sm grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all"
             >
               <div className="flex items-center gap-2 italic">MIT Trusted</div>

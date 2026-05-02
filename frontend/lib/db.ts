@@ -11,7 +11,7 @@ if (!cached) {
 async function connectToDatabase() {
   if (!MONGODB_URI) {
     throw new Error(
-      "Please define the MONGODB_URI environment variable inside .env.local"
+      "Please define the MONGODB_URI environment variable (check .env.local locally or Vercel Dashboard in production)"
     );
   }
 

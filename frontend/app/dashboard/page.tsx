@@ -255,23 +255,22 @@ export default function Dashboard() {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         >
           {[
-            { label: 'Study Hours', value: `${stats.totalHours}h`, icon: Clock, color: 'indigo' },
-            { label: 'Active Topics', value: stats.uniqueSubjects, icon: BookOpen, color: 'violet' },
-            { label: 'Avg Session', value: `${stats.avgSession}m`, icon: Target, color: 'blue' },
-            { label: 'Completed', value: sessions.length, icon: TrendingUp, color: 'emerald' },
+            { label: 'Study Hours', value: `${stats.totalHours}h`, icon: Clock },
+            { label: 'Completed', value: sessions.length, icon: TrendingUp },
           ].map((item, i) => (
             <motion.div 
               key={i} 
               variants={itemVariants}
-              whileHover={{ y: -5 }}
-              className="glass p-6 rounded-3xl border border-indigo-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all group"
+              className="glass p-8 rounded-3xl border border-indigo-100 shadow-sm"
             >
-              <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-${item.color}-50 text-${item.color}-600 group-hover:bg-${item.color}-600 group-hover:text-white transition-all duration-300`}>
-                <item.icon className="w-6 h-6" />
-              </div>
-              <p className="text-indigo-900/40 text-xs font-bold uppercase tracking-widest mb-1">{item.label}</p>
-              <div className="text-3xl font-black text-indigo-950">
-                {loading ? <Skeleton className="h-9 w-20 bg-indigo-50" /> : item.value}
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                  <item.icon className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-indigo-900/40 text-[10px] font-black uppercase tracking-widest">{item.label}</p>
+                  <div className="text-2xl font-black text-indigo-950">{item.value}</div>
+                </div>
               </div>
             </motion.div>
           ))}

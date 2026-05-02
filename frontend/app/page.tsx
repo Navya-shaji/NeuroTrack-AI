@@ -110,27 +110,6 @@ export default function Home() {
               <Link href="#features" className="text-lg font-bold text-indigo-900/40 hover:text-indigo-600 transition-colors">
                 View Features
               </Link>
-            </motion.div>
-
-            {/* Simplified Stats/Badges */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 1 }}
-              className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
-            >
-              {[
-                { label: "Active Users", value: "10k+" },
-                { label: "AI Insights", value: "1M+" },
-                { label: "Focus Score", value: "98%" },
-                { label: "Global Peak", value: "Top 1%" }
-              ].map((stat, i) => (
-                <div key={i} className="text-center">
-                  <div className="text-2xl font-black text-indigo-950">{stat.value}</div>
-                  <div className="text-xs font-bold text-indigo-900/30 uppercase tracking-widest mt-1">{stat.label}</div>
-                </div>
-              ))}
-            </motion.div>
           </div>
         </section>
 

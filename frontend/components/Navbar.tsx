@@ -20,9 +20,8 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogout = async () => {
-    await logout();
-    router.push("/login");
+  const handleLogout = () => {
+    logout(); // calls server action + redirects via the AuthContext
   };
 
   const navLinks = [

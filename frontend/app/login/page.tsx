@@ -1,75 +1,69 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "@/context/AuthContext";
+import { login } from "@/actions/auth";
 import { Brain, ArrowRight, Mail, Lock, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { refreshUser } = useAuth();
+  const { setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
 
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+    startTransition(async () => {
+      const result = await login(email, password);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      // Fetch updated user after login
+      const res = await fetch("/api/auth/session");
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Login failed");
-
-      await refreshUser();
+      if (data.user) setUser(data.user);
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+      router.refresh();
+    });
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = (credentialResponse: any) => {
     setError("");
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/google", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ credential: credentialResponse.credential }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Google login failed");
 
-      await refreshUser();
-      router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/auth/google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential: credentialResponse.credential }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Google login failed");
+
+        const sessionRes = await fetch("/api/auth/session");
+        const sessionData = await sessionRes.json();
+        if (sessionData.user) setUser(sessionData.user);
+
+        router.push("/dashboard");
+        router.refresh();
+      } catch (err: any) {
+        setError(err.message);
+      }
+    });
   };
-
-  if (!isMounted) return null;
 
   return (
     <div className="min-h-screen bg-mesh flex items-center justify-center p-6">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
@@ -88,7 +82,7 @@ export default function LoginPage() {
 
           {/* Error Message */}
           {error && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-bold text-center"
@@ -100,10 +94,12 @@ export default function LoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest ml-1">Email Address</label>
+              <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest ml-1">
+                Email Address
+              </label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-300 group-focus-within:text-indigo-600 transition-colors" />
-                <input 
+                <input
                   required
                   type="email"
                   value={email}
@@ -115,10 +111,12 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest ml-1">Password</label>
+              <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest ml-1">
+                Password
+              </label>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-300 group-focus-within:text-indigo-600 transition-colors" />
-                <input 
+                <input
                   required
                   type="password"
                   value={password}
@@ -129,12 +127,12 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button 
+            <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-indigo-600 text-white hover:bg-indigo-700 py-4 rounded-2xl text-lg font-black transition-all shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group mt-8"
+              disabled={isPending}
+              className="w-full bg-indigo-600 text-white hover:bg-indigo-700 py-4 rounded-2xl text-lg font-black transition-all shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group mt-8 disabled:opacity-60 disabled:scale-100"
             >
-              {loading ? (
+              {isPending ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
@@ -150,11 +148,13 @@ export default function LoginPage() {
               <div className="w-full border-t border-indigo-100"></div>
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-4 bg-white text-indigo-900/30 font-black uppercase tracking-widest">Secure Entry</span>
+              <span className="px-4 bg-white text-indigo-900/30 font-black uppercase tracking-widest">
+                Secure Entry
+              </span>
             </div>
           </div>
 
-          {/* Social Login */}
+          {/* Google Login */}
           <div className="flex justify-center mb-10">
             <div className="w-full max-w-[280px]">
               <GoogleLogin
@@ -171,13 +171,15 @@ export default function LoginPage() {
           {/* Footer Link */}
           <p className="text-center text-sm font-bold text-indigo-900/40">
             New to NeuroTrack?{" "}
-            <Link href="/signup" className="text-indigo-600 hover:text-indigo-700 transition-colors font-black underline underline-offset-4 decoration-2">
+            <Link
+              href="/signup"
+              className="text-indigo-600 hover:text-indigo-700 transition-colors font-black underline underline-offset-4 decoration-2"
+            >
               Create Account
             </Link>
           </p>
         </div>
-        
-        {/* Security Badge */}
+
         <div className="mt-8 flex items-center justify-center gap-2 text-indigo-900/30 text-[10px] font-black uppercase tracking-[0.2em]">
           <Sparkles className="w-3 h-3" />
           End-to-end Encrypted Workspace

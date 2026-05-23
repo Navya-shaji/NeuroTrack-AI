@@ -14,14 +14,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing Google credential" }, { status: 400 });
     }
 
-    // Verify Google ID Token
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
-    if (!payload || !payload.email) {
+    if (!payload?.email) {
       return NextResponse.json({ error: "Invalid Google token" }, { status: 400 });
     }
 
@@ -29,26 +28,22 @@ export async function POST(req: Request) {
 
     await connectDB();
 
-    // Find or create user
-    let user = await User.findOne({ email });
-
+    let user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      // Create a new user without a password (OAuth user)
       user = await User.create({
         name: name || "Google User",
-        email,
+        email: email.toLowerCase(),
         image: picture,
-        googleId, // Optional: if you want to store Google-specific ID
+        googleId,
       });
     }
 
-    // Generate our custom JWT
     const token = await encrypt({ id: user._id.toString(), email: user.email });
 
-    const response = NextResponse.json({ 
-      message: "Google login successful",
-      user: { name: user.name, email: user.email }
-    }, { status: 200 });
+    const response = NextResponse.json(
+      { message: "Google login successful" },
+      { status: 200 }
+    );
 
     response.cookies.set({
       name: "token",
@@ -56,12 +51,16 @@ export async function POST(req: Request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: 60 * 60 * 24,
+      sameSite: "lax",
     });
 
     return response;
   } catch (error: any) {
     console.error("Google Auth Error:", error);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Internal server error" },
+      { status: 500 }
+    );
   }
 }

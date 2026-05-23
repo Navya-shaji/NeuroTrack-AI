@@ -1,54 +1,43 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState, useTransition } from "react";
+import { logout as logoutAction } from "@/actions/auth";
 
-interface User {
+export interface AuthUser {
   _id: string;
   name: string;
   email: string;
+  image?: string;
 }
 
 interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  refreshUser: () => Promise<void>;
-  logout: () => Promise<void>;
+  user: AuthUser | null;
+  setUser: (user: AuthUser | null) => void;
+  logout: () => void;
+  isPending: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider({
+  children,
+  initialUser,
+}: {
+  children: React.ReactNode;
+  initialUser: AuthUser | null;
+}) {
+  const [user, setUser] = useState<AuthUser | null>(initialUser);
+  const [isPending, startTransition] = useTransition();
 
-  const refreshUser = async () => {
-    try {
-      const res = await fetch("/api/auth/me");
-      const data = await res.json();
-      setUser(data.user);
-    } catch (error) {
-      console.error("Failed to fetch user:", error);
+  const logout = () => {
+    startTransition(async () => {
       setUser(null);
-    } finally {
-      setLoading(false);
-    }
+      await logoutAction();
+    });
   };
-
-  const logout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      setUser(null);
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
-  useEffect(() => {
-    refreshUser();
-  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, refreshUser, logout }}>
+    <AuthContext.Provider value={{ user, setUser, logout, isPending }}>
       {children}
     </AuthContext.Provider>
   );

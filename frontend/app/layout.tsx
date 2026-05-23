@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Providers from "@/components/Providers";
 import { AuthProvider } from "@/context/AuthContext";
+import { getCurrentUser } from "@/actions/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,24 +19,30 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "NeuroTrack AI",
-  description: "AI-Powered SEO Blogging Platform",
+  description: "AI-Powered Study Tracking Platform",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch user on the server — no client-side /api/auth/me call needed
+  const user = await getCurrentUser();
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-white text-purple-900 font-sans selection:bg-purple-100 selection:text-purple-900" suppressHydrationWarning>
+      <body
+        className="min-h-full flex flex-col bg-white text-purple-900 font-sans selection:bg-purple-100 selection:text-purple-900"
+        suppressHydrationWarning
+      >
         <main className="flex-grow flex flex-col">
           <Providers>
-            <AuthProvider>
+            <AuthProvider initialUser={user}>
               <Navbar />
               {children}
             </AuthProvider>
@@ -46,4 +53,3 @@ export default function RootLayout({
     </html>
   );
 }
-

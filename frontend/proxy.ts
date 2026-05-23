@@ -1,42 +1,27 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { decrypt } from "./lib/auth";
+import { getSessionCookie } from "better-auth/cookies";
 
 export async function proxy(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
+  const sessionCookie = getSessionCookie(request);
 
-  const isAuthPage = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/signup");
-  const isProtectedRoute = request.nextUrl.pathname.startsWith("/dashboard");
+  const { pathname } = request.nextUrl;
+  const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/signup");
+  const isProtectedRoute = pathname.startsWith("/dashboard");
 
-  if (isProtectedRoute && !token) {
+  // Redirect unauthenticated users away from protected routes
+  if (isProtectedRoute && !sessionCookie) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (isAuthPage && token) {
-    try {
-      await decrypt(token);
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    } catch (err) {
-      // Invalid token, ignore
-    }
+  // Redirect authenticated users away from auth pages
+  if (isAuthPage && sessionCookie) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  if (isProtectedRoute && token) {
-    try {
-      await decrypt(token);
-    } catch (err) {
-      // Token is invalid
-      const response = NextResponse.redirect(new URL("/login", request.url));
-      response.cookies.delete("token");
-      return response;
-    }
-  }
-
-  const res = NextResponse.next();
-  res.headers.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-  return res;
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/:path*"],
+  matcher: ["/dashboard/:path*", "/login", "/signup"],
 };

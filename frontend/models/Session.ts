@@ -6,7 +6,7 @@ export interface ISession extends Document {
   duration: number; // in minutes
   date: Date;
   notes?: string;
-  userId: mongoose.Schema.Types.ObjectId;
+  userId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,7 +18,7 @@ const SessionSchema: Schema = new Schema(
     duration: { type: Number, required: true, min: 1 },
     date: { type: Date, required: true },
     notes: { type: String },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    userId: { type: String, ref: "User", required: true },
   },
   { timestamps: true }
 );

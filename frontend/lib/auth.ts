@@ -1,19 +1,47 @@
-import { SignJWT, jwtVerify } from "jose";
+import { betterAuth } from "better-auth";
+import { mongodbAdapter } from "better-auth/adapters/mongodb";
+import { nextCookies } from "better-auth/next-js";
+import { MongoClient } from "mongodb";
 
-const secretKey = process.env.JWT_SECRET || "fallback_secret";
-const key = new TextEncoder().encode(secretKey);
+// Reuse the MongoClient across hot-reloads in dev
+const globalForMongo = global as unknown as { _mongoClient?: MongoClient };
 
-export async function encrypt(payload: any) {
-  return await new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("1d")
-    .sign(key);
+if (!globalForMongo._mongoClient) {
+  globalForMongo._mongoClient = new MongoClient(
+    process.env.MONGODB_URI as string
+  );
 }
 
-export async function decrypt(input: string): Promise<any> {
-  const { payload } = await jwtVerify(input, key, {
-    algorithms: ["HS256"],
-  });
-  return payload;
-}
+const client = globalForMongo._mongoClient;
+const db = client.db(); // uses the database name from the connection string
+
+export const auth = betterAuth({
+  database: mongodbAdapter(db, { client }),
+
+  // ─── Email + Password ──────────────────────────────────────────────
+  emailAndPassword: {
+    enabled: true,
+    minPasswordLength: 6,
+  },
+
+  // ─── Google OAuth ──────────────────────────────────────────────────
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
+
+  // ─── User fields ───────────────────────────────────────────────────
+  user: {
+    additionalFields: {
+      // better-auth stores name + image by default; nothing extra needed
+    },
+  },
+
+  // ─── Next.js cookie helper (required for server actions) ───────────
+  plugins: [nextCookies()],
+});
+
+export type Session = typeof auth.$Infer.Session;
+export type User = typeof auth.$Infer.Session.user;

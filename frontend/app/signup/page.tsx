@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { signUp } from "@/actions/auth";
+import { authClient } from "@/lib/auth-client";
 import { Brain, ArrowRight, Mail, Lock, User, Sparkles } from "lucide-react";
 
 export default function SignupPage() {
@@ -27,10 +28,16 @@ export default function SignupPage() {
         setError(result.error);
         return;
       }
-      // Fetch updated user after signup
-      const res = await fetch("/api/auth/session");
-      const data = await res.json();
-      if (data.user) setUser(data.user);
+      // Sync client-side user state
+      const session = await authClient.getSession();
+      if (session.data?.user) {
+        setUser({
+          id: session.data.user.id,
+          name: session.data.user.name,
+          email: session.data.user.email,
+          image: session.data.user.image,
+        });
+      }
       router.push("/dashboard");
       router.refresh();
     });
@@ -55,7 +62,7 @@ export default function SignupPage() {
             <p className="text-indigo-900/50 font-bold mt-2">Start your journey with NeuroTrack AI</p>
           </div>
 
-          {/* Error Message */}
+          {/* Error */}
           {error && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -135,7 +142,7 @@ export default function SignupPage() {
             </button>
           </form>
 
-          {/* Footer Link */}
+          {/* Footer */}
           <p className="mt-10 text-center text-sm font-bold text-indigo-900/40">
             Already have an account?{" "}
             <Link

@@ -4,7 +4,6 @@ import { z } from "zod";
 import connectDB from "@/lib/db";
 import { Session } from "@/models/Session";
 import { requireAuth } from "@/actions/auth";
-import mongoose from "mongoose";
 import "@/models/User";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -61,7 +60,7 @@ export async function getSessions(): Promise<SessionData[]> {
   await connectDB();
 
   const sessions = await Session.find({
-    userId: new mongoose.Types.ObjectId(user._id),
+    userId: user.id,
   })
     .sort({ date: -1 })
     .lean();
@@ -85,7 +84,7 @@ export async function createSession(
     await connectDB();
     const session = await Session.create({
       ...parsed.data,
-      userId: new mongoose.Types.ObjectId(user._id),
+      userId: user.id,
     });
 
     return { session: serializeSession(session.toObject()) };
@@ -111,7 +110,7 @@ export async function updateSession(
 
     await connectDB();
     const session = await Session.findOneAndUpdate(
-      { _id: id, userId: new mongoose.Types.ObjectId(user._id) },
+      { _id: id, userId: user.id },
       { $set: parsed.data },
       { new: true }
     ).lean();
@@ -136,7 +135,7 @@ export async function deleteSession(id: string): Promise<{ error?: string }> {
 
     const session = await Session.findOneAndDelete({
       _id: id,
-      userId: new mongoose.Types.ObjectId(user._id),
+      userId: user.id,
     });
 
     if (!session) {

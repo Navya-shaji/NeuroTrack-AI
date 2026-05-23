@@ -4,18 +4,13 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import connectDB from "@/lib/db";
 import { Session } from "@/models/Session";
 import { requireAuth } from "@/actions/auth";
-import mongoose from "mongoose";
 import "@/models/User";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getGenAI(): GoogleGenerativeAI {
   const key = process.env.GOOGLE_API_KEY;
-  if (!key) {
-    throw new Error(
-      "GOOGLE_API_KEY is not set. Add it to your .env.local file."
-    );
-  }
+  if (!key) throw new Error("GOOGLE_API_KEY is not set. Add it to your .env.local file.");
   return new GoogleGenerativeAI(key);
 }
 
@@ -28,33 +23,24 @@ async function generateText(prompt: string): Promise<string> {
 
 // ─── Generate Insights ────────────────────────────────────────────────────────
 
-export async function generateInsights(): Promise<{
-  insight?: string;
-  error?: string;
-}> {
+export async function generateInsights(): Promise<{ insight?: string; error?: string }> {
   try {
     const user = await requireAuth();
     await connectDB();
 
-    const sessions = await Session.find({
-      userId: new mongoose.Types.ObjectId(user._id),
-    })
+    const sessions = await Session.find({ userId: user.id })
       .sort({ date: -1 })
       .limit(10)
       .lean();
 
     if (sessions.length === 0) {
       return {
-        insight:
-          "You haven't logged any study sessions yet! Start by adding your first session to get personalized AI insights.",
+        insight: "You haven't logged any study sessions yet! Start by adding your first session to get personalized AI insights.",
       };
     }
 
     const sessionData = sessions
-      .map(
-        (s) =>
-          `- ${s.subject}: ${s.title} (${s.duration} mins)${s.notes ? ` — Notes: ${s.notes}` : ""}`
-      )
+      .map((s) => `- ${s.subject}: ${s.title} (${s.duration} mins)${s.notes ? ` — Notes: ${s.notes}` : ""}`)
       .join("\n");
 
     const prompt = `
@@ -84,19 +70,14 @@ Keep it encouraging and professional.
 
 // ─── Summarize Notes ──────────────────────────────────────────────────────────
 
-export async function summarizeNotes(notes: string): Promise<{
-  summary?: string;
-  error?: string;
-}> {
+export async function summarizeNotes(notes: string): Promise<{ summary?: string; error?: string }> {
   try {
     await requireAuth();
 
-    if (!notes?.trim()) {
-      return { error: "No notes provided" };
-    }
+    if (!notes?.trim()) return { error: "No notes provided" };
 
     const prompt = `
-Summarize the following study notes concisely. 
+Summarize the following study notes concisely.
 Extract the key concepts, important terms, and main takeaways.
 Format the output in clean Markdown with bullet points.
 
@@ -114,25 +95,19 @@ ${notes}
 
 // ─── Get Study Suggestion ─────────────────────────────────────────────────────
 
-export async function getStudySuggestion(): Promise<{
-  suggestion?: string;
-  error?: string;
-}> {
+export async function getStudySuggestion(): Promise<{ suggestion?: string; error?: string }> {
   try {
     const user = await requireAuth();
     await connectDB();
 
-    const sessions = await Session.find({
-      userId: new mongoose.Types.ObjectId(user._id),
-    })
+    const sessions = await Session.find({ userId: user.id })
       .sort({ date: -1 })
       .limit(10)
       .lean();
 
     if (sessions.length === 0) {
       return {
-        suggestion:
-          "You haven't logged any study sessions yet! Start by adding your first session to get personalized suggestions.",
+        suggestion: "You haven't logged any study sessions yet! Start by adding your first session to get personalized suggestions.",
       };
     }
 

@@ -4,10 +4,10 @@ import React, { createContext, useContext, useState, useTransition } from "react
 import { logout as logoutAction } from "@/actions/auth";
 
 export interface AuthUser {
-  _id: string;
+  id: string;
   name: string;
   email: string;
-  image?: string;
+  image?: string | null;
 }
 
 interface AuthContextType {

@@ -1,11 +1,6 @@
 "use client";
 
-import { GoogleOAuthProvider } from "@react-oauth/google";
-
+// Providers wrapper — add any client-side providers here as needed.
 export default function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
-      {children}
-    </GoogleOAuthProvider>
-  );
+  return <>{children}</>;
 }

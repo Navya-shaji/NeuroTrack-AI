@@ -3,17 +3,42 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { nextCookies } from "better-auth/next-js";
 import { MongoClient } from "mongodb";
 
-// Reuse the MongoClient across hot-reloads in dev
-const globalForMongo = global as unknown as { _mongoClient?: MongoClient };
+// ─── Lazy MongoDB client ───────────────────────────────────────────────────────
+// We defer the MongoClient creation until runtime so that the build step
+// (which has no MONGODB_URI) does not throw a MongoParseError.
 
-if (!globalForMongo._mongoClient) {
-  globalForMongo._mongoClient = new MongoClient(
-    process.env.MONGODB_URI as string
-  );
+declare global {
+  var _mongoClient: MongoClient | undefined;
 }
 
-const client = globalForMongo._mongoClient;
-const db = client.db(); // uses the database name from the connection string
+function getMongoClient(): MongoClient {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error(
+      "MONGODB_URI is not defined. Add it to .env.local or your hosting environment variables."
+    );
+  }
+  if (!global._mongoClient) {
+    global._mongoClient = new MongoClient(uri);
+  }
+  return global._mongoClient;
+}
+
+// ─── better-auth instance ─────────────────────────────────────────────────────
+// mongodbAdapter accepts a factory function so the client is only
+// resolved on the first real request, not at import / build time.
+
+const client = new Proxy({} as MongoClient, {
+  get(_target, prop) {
+    return Reflect.get(getMongoClient(), prop);
+  },
+});
+
+const db = new Proxy({} as ReturnType<MongoClient["db"]>, {
+  get(_target, prop) {
+    return Reflect.get(getMongoClient().db(), prop);
+  },
+});
 
 export const auth = betterAuth({
   database: mongodbAdapter(db, { client }),
@@ -34,9 +59,7 @@ export const auth = betterAuth({
 
   // ─── User fields ───────────────────────────────────────────────────
   user: {
-    additionalFields: {
-      // better-auth stores name + image by default; nothing extra needed
-    },
+    additionalFields: {},
   },
 
   // ─── Next.js cookie helper (required for server actions) ───────────

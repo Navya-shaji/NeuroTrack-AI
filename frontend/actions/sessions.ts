@@ -6,8 +6,6 @@ import { Session } from "@/models/Session";
 import { requireAuth } from "@/actions/auth";
 import "@/models/User";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface SessionData {
   _id: string;
   title: string;
@@ -16,6 +14,7 @@ export interface SessionData {
   date: string;
   notes?: string;
   userId: string;
+  completed: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,8 +23,6 @@ export interface SessionActionResult {
   error?: string;
   session?: SessionData;
 }
-
-// ─── Validation ───────────────────────────────────────────────────────────────
 
 const createSessionSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title too long"),
@@ -37,8 +34,6 @@ const createSessionSchema = z.object({
 
 const updateSessionSchema = createSessionSchema.partial();
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 interface SessionDocument {
   _id: { toString(): string };
   title: string;
@@ -47,6 +42,7 @@ interface SessionDocument {
   date: Date | string;
   notes?: string;
   userId: { toString(): string };
+  completed: boolean;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -60,54 +56,34 @@ function serializeSession(doc: SessionDocument): SessionData {
     date: doc.date instanceof Date ? doc.date.toISOString() : doc.date,
     notes: doc.notes,
     userId: doc.userId.toString(),
+    completed: doc.completed ?? false,
     createdAt: doc.createdAt instanceof Date ? doc.createdAt.toISOString() : doc.createdAt,
     updatedAt: doc.updatedAt instanceof Date ? doc.updatedAt.toISOString() : doc.updatedAt,
   };
 }
 
-// ─── Get Sessions ─────────────────────────────────────────────────────────────
-
 export async function getSessions(): Promise<SessionData[]> {
   const user = await requireAuth();
   await connectDB();
-
-  const sessions = await Session.find({
-    userId: user.id,
-  })
-    .sort({ date: -1 })
-    .lean();
-
+  const sessions = await Session.find({ userId: user.id }).sort({ date: -1 }).lean();
   return sessions.map(serializeSession);
 }
-
-// ─── Create Session ───────────────────────────────────────────────────────────
 
 export async function createSession(
   data: z.infer<typeof createSessionSchema>
 ): Promise<SessionActionResult> {
   try {
     const user = await requireAuth();
-
     const parsed = createSessionSchema.safeParse(data);
-    if (!parsed.success) {
-      return { error: parsed.error.issues[0].message };
-    }
-
+    if (!parsed.success) return { error: parsed.error.issues[0].message };
     await connectDB();
-    const session = await Session.create({
-      ...parsed.data,
-      userId: user.id,
-    });
-
+    const session = await Session.create({ ...parsed.data, userId: user.id, completed: false });
     return { session: serializeSession(session.toObject()) };
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error("Create Session Error:", error);
     return { error: error.message || "Failed to create session" };
   }
 }
-
-// ─── Update Session ───────────────────────────────────────────────────────────
 
 export async function updateSession(
   id: string,
@@ -115,51 +91,50 @@ export async function updateSession(
 ): Promise<SessionActionResult> {
   try {
     const user = await requireAuth();
-
     const parsed = updateSessionSchema.safeParse(data);
-    if (!parsed.success) {
-      return { error: parsed.error.issues[0].message };
-    }
-
+    if (!parsed.success) return { error: parsed.error.issues[0].message };
     await connectDB();
     const session = await Session.findOneAndUpdate(
       { _id: id, userId: user.id },
       { $set: parsed.data },
       { new: true }
     ).lean();
-
-    if (!session) {
-      return { error: "Session not found" };
-    }
-
+    if (!session) return { error: "Session not found" };
     return { session: serializeSession(session) };
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error("Update Session Error:", error);
     return { error: error.message || "Failed to update session" };
   }
 }
 
-// ─── Delete Session ───────────────────────────────────────────────────────────
+export async function toggleSessionComplete(id: string): Promise<SessionActionResult> {
+  try {
+    const user = await requireAuth();
+    await connectDB();
+    const existing = await Session.findOne({ _id: id, userId: user.id });
+    if (!existing) return { error: "Session not found" };
+    const session = await Session.findOneAndUpdate(
+      { _id: id, userId: user.id },
+      { $set: { completed: !existing.completed } },
+      { new: true }
+    ).lean();
+    if (!session) return { error: "Session not found" };
+    return { session: serializeSession(session) };
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    return { error: error.message || "Failed to update session" };
+  }
+}
 
 export async function deleteSession(id: string): Promise<{ error?: string }> {
   try {
     const user = await requireAuth();
     await connectDB();
-
-    const session = await Session.findOneAndDelete({
-      _id: id,
-      userId: user.id,
-    });
-
-    if (!session) {
-      return { error: "Session not found" };
-    }
-
+    const session = await Session.findOneAndDelete({ _id: id, userId: user.id });
+    if (!session) return { error: "Session not found" };
     return {};
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
-    console.error("Delete Session Error:", error);
     return { error: error.message || "Failed to delete session" };
   }
 }

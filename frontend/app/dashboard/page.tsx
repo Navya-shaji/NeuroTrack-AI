@@ -8,9 +8,9 @@ import {
   Tooltip as RechartsTooltip, ResponsiveContainer,
 } from "recharts";
 import {
-  Clock, Calendar, Trash2, Edit2, Plus,
+  Clock, Calendar, Trash2, Edit2, Plus, CheckCircle2,
   Filter, Search, TrendingUp, Sparkles, Brain, Zap,
-  List, Activity,
+  List, Activity, Circle,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -19,11 +19,8 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { z } from "zod";
 import {
-  getSessions,
-  createSession,
-  updateSession,
-  deleteSession,
-  type SessionData,
+  getSessions, createSession, updateSession,
+  deleteSession, toggleSessionComplete, type SessionData,
 } from "@/actions/sessions";
 import { generateInsights, summarizeNotes } from "@/actions/ai";
 
@@ -45,6 +42,46 @@ const itemVariants = {
   visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 24 } },
 } as const;
 
+interface ConfirmModalProps {
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function ConfirmModal({ message, onConfirm, onCancel }: ConfirmModalProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" onClick={onCancel} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="relative bg-white rounded-3xl p-8 shadow-2xl shadow-indigo-200 border border-indigo-100 max-w-sm w-full z-10"
+      >
+        <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-50 mx-auto mb-5">
+          <Trash2 className="w-6 h-6 text-rose-500" />
+        </div>
+        <h3 className="text-lg font-black text-indigo-950 text-center mb-2">Delete Session?</h3>
+        <p className="text-sm text-indigo-900/50 font-medium text-center mb-8">{message}</p>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-3 rounded-2xl bg-indigo-50 text-indigo-600 font-bold hover:bg-indigo-100 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-3 rounded-2xl bg-rose-500 text-white font-bold hover:bg-rose-600 transition-all"
+          >
+            Delete
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const { user } = useAuth();
@@ -57,9 +94,11 @@ export default function Dashboard() {
   const [aiInsights, setAiInsights] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [isPending, startTransition] = useTransition();
   const [isGenerating, setIsGenerating] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null);
 
   const showToast = (message: string, type: ToastType = "info") => {
     setToast({ message, type });
@@ -78,7 +117,6 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    // Set mounted state and initial form date after initial render to avoid hydration issues
     const timer = setTimeout(() => {
       setMounted(true);
       setForm((prev) => ({ ...prev, date: new Date().toISOString().split("T")[0] }));
@@ -113,10 +151,24 @@ export default function Dashboard() {
     }
   };
 
+  const handleToggleComplete = (id: string) => {
+    startTransition(async () => {
+      const result = await toggleSessionComplete(id);
+      if (result.error) {
+        showToast(result.error, "error");
+        return;
+      }
+      setSessions((prev) =>
+        prev.map((s) => s._id === id ? { ...s, completed: !s.completed } : s)
+      );
+      const session = sessions.find((s) => s._id === id);
+      showToast(session?.completed ? "Marked as incomplete" : "Marked as complete!", "success");
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-
     const parsed = sessionSchema.safeParse({ ...form, duration: Number(form.duration) });
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {};
@@ -127,17 +179,14 @@ export default function Dashboard() {
       showToast("Please check the form for errors", "error");
       return;
     }
-
     startTransition(async () => {
       const result = editingId
         ? await updateSession(editingId, parsed.data)
         : await createSession(parsed.data);
-
       if (result.error) {
         showToast(result.error, "error");
         return;
       }
-
       showToast(editingId ? "Session updated!" : "Session logged!", "success");
       setForm({ title: "", subject: "", duration: 30, date: new Date().toISOString().split("T")[0], notes: "" });
       setEditingId(null);
@@ -145,8 +194,10 @@ export default function Dashboard() {
     });
   };
 
-  const handleDelete = (id: string) => {
-    if (!confirm("Are you sure you want to delete this study session?")) return;
+  const handleDeleteConfirmed = () => {
+    if (!confirmDelete) return;
+    const id = confirmDelete.id;
+    setConfirmDelete(null);
     startTransition(async () => {
       const result = await deleteSession(id);
       if (result.error) {
@@ -161,11 +212,7 @@ export default function Dashboard() {
   const stats = useMemo(() => {
     const totalMinutes = sessions.reduce((acc, s) => acc + (Number(s.duration) || 0), 0);
     const totalHours = (totalMinutes / 60).toFixed(1);
-
-    const subjectMap: Record<string, number> = {};
-    sessions.forEach((s) => {
-      if (s.subject) subjectMap[s.subject] = (subjectMap[s.subject] || 0) + (Number(s.duration) || 0);
-    });
+    const completedCount = sessions.filter((s) => s.completed).length;
 
     const last7Days = [...Array(7)].map((_, i) => {
       const d = new Date();
@@ -180,7 +227,7 @@ export default function Dashboard() {
         .reduce((acc, s) => acc + (Number(s.duration) || 0), 0),
     }));
 
-    return { totalHours, weeklyData };
+    return { totalHours, completedCount, weeklyData };
   }, [sessions]);
 
   const filteredSessions = useMemo(() => {
@@ -189,9 +236,13 @@ export default function Dashboard() {
         s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         s.subject.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesSubject = subjectFilter === "all" || s.subject === subjectFilter;
-      return matchesSearch && matchesSubject;
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "completed" && s.completed) ||
+        (statusFilter === "incomplete" && !s.completed);
+      return matchesSearch && matchesSubject && matchesStatus;
     });
-  }, [sessions, searchQuery, subjectFilter]);
+  }, [sessions, searchQuery, subjectFilter, statusFilter]);
 
   const subjects = Array.from(new Set(sessions.map((s) => s.subject)));
 
@@ -200,7 +251,16 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto space-y-8">
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-        {/* Header */}
+        <AnimatePresence>
+          {confirmDelete && (
+            <ConfirmModal
+              message={`"${confirmDelete.title}" will be permanently removed.`}
+              onConfirm={handleDeleteConfirmed}
+              onCancel={() => setConfirmDelete(null)}
+            />
+          )}
+        </AnimatePresence>
+
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -214,7 +274,7 @@ export default function Dashboard() {
             <h1 className="text-4xl font-black tracking-tight text-indigo-950">
               Welcome back, <span className="text-indigo-600">{user?.name?.split(" ")[0]}</span>
             </h1>
-            <p className="text-indigo-900/50 mt-1 font-medium">Your learning velocity is up by 12% this week.</p>
+            <p className="text-indigo-900/50 mt-1 font-medium">Track, complete, and analyze your study sessions.</p>
           </div>
           <div className="relative group w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-300 group-focus-within:text-indigo-600 transition-colors" />
@@ -229,22 +289,18 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Stats */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
         >
           {[
             { label: "Study Hours", value: `${stats.totalHours}h`, icon: Clock },
-            { label: "Completed", value: sessions.length, icon: TrendingUp },
+            { label: "Total Sessions", value: sessions.length, icon: TrendingUp },
+            { label: "Completed", value: stats.completedCount, icon: CheckCircle2 },
           ].map((item, i) => (
-            <motion.div
-              key={i}
-              variants={itemVariants}
-              className="glass p-8 rounded-3xl border border-indigo-100 shadow-sm"
-            >
+            <motion.div key={i} variants={itemVariants} className="glass p-8 rounded-3xl border border-indigo-100 shadow-sm">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
                   <item.icon className="w-6 h-6" />
@@ -259,10 +315,8 @@ export default function Dashboard() {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Area */}
           <div className="lg:col-span-2 space-y-8">
 
-            {/* AI Insights Card */}
             <motion.div
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -303,7 +357,6 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
-
               <AnimatePresence>
                 {aiInsights && (
                   <motion.div
@@ -328,7 +381,6 @@ export default function Dashboard() {
               </AnimatePresence>
             </motion.div>
 
-            {/* Velocity Chart */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -370,24 +422,35 @@ export default function Dashboard() {
               </div>
             </motion.div>
 
-            {/* Session List */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="glass p-8 rounded-[2.5rem] border border-indigo-100 shadow-sm"
             >
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <h3 className="text-xl font-black text-indigo-950">Recent Logs</h3>
-                <div className="relative">
-                  <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-indigo-300" />
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-indigo-300" />
+                    <select
+                      value={subjectFilter}
+                      onChange={(e) => setSubjectFilter(e.target.value)}
+                      suppressHydrationWarning
+                      className="appearance-none bg-indigo-50 border border-indigo-100 rounded-xl text-xs font-bold text-indigo-900/70 py-2.5 pl-9 pr-8 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer transition-all"
+                    >
+                      <option value="all">All Subjects</option>
+                      {subjects.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
                   <select
-                    value={subjectFilter}
-                    onChange={(e) => setSubjectFilter(e.target.value)}
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
                     suppressHydrationWarning
-                    className="appearance-none bg-indigo-50 border border-indigo-100 rounded-xl text-xs font-bold text-indigo-900/70 py-2.5 pl-9 pr-8 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer transition-all"
+                    className="appearance-none bg-indigo-50 border border-indigo-100 rounded-xl text-xs font-bold text-indigo-900/70 py-2.5 px-4 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer transition-all"
                   >
-                    <option value="all">All Subjects</option>
-                    {subjects.map((s) => <option key={s} value={s}>{s}</option>)}
+                    <option value="all">All Status</option>
+                    <option value="completed">Completed</option>
+                    <option value="incomplete">Incomplete</option>
                   </select>
                 </div>
               </div>
@@ -410,16 +473,45 @@ export default function Dashboard() {
                         key={session._id}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-white border border-indigo-50 hover:border-indigo-200 transition-all hover:shadow-lg hover:shadow-indigo-500/5"
+                        className={cn(
+                          "group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-white border transition-all hover:shadow-lg hover:shadow-indigo-500/5",
+                          session.completed
+                            ? "border-emerald-100 bg-emerald-50/30"
+                            : "border-indigo-50 hover:border-indigo-200"
+                        )}
                       >
                         <div className="flex items-center gap-5">
-                          <div className="h-14 w-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
-                            <Clock className="w-6 h-6" />
-                          </div>
+                          <button
+                            onClick={() => handleToggleComplete(session._id)}
+                            className={cn(
+                              "h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-300 flex-shrink-0",
+                              session.completed
+                                ? "bg-emerald-100 text-emerald-600 hover:bg-emerald-200"
+                                : "bg-indigo-50 text-indigo-300 hover:bg-indigo-100 hover:text-indigo-600"
+                            )}
+                            title={session.completed ? "Mark as incomplete" : "Mark as complete"}
+                          >
+                            {session.completed
+                              ? <CheckCircle2 className="w-6 h-6" />
+                              : <Circle className="w-6 h-6" />
+                            }
+                          </button>
                           <div>
-                            <h4 className="text-base font-black text-indigo-950 mb-1">{session.title}</h4>
-                            <div className="flex items-center gap-3 text-xs font-bold">
-                              <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">{session.subject}</span>
+                            <h4 className={cn(
+                              "text-base font-black mb-1",
+                              session.completed ? "text-indigo-400 line-through" : "text-indigo-950"
+                            )}>
+                              {session.title}
+                            </h4>
+                            <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
+                              <span className={cn(
+                                "px-3 py-1 rounded-full border",
+                                session.completed
+                                  ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                                  : "bg-indigo-50 text-indigo-600 border-indigo-100"
+                              )}>
+                                {session.subject}
+                              </span>
                               <span className="text-indigo-900/30">•</span>
                               <span className="text-indigo-900/40 flex items-center gap-1"><Clock className="w-3 h-3" /> {session.duration}m</span>
                               <span className="text-indigo-900/30">•</span>
@@ -427,6 +519,11 @@ export default function Dashboard() {
                                 <Calendar className="w-3 h-3" />
                                 {new Date(session.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                               </span>
+                              {session.completed && (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-wider">
+                                  Done
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -456,7 +553,7 @@ export default function Dashboard() {
                             <Edit2 className="w-5 h-5" />
                           </button>
                           <button
-                            onClick={() => handleDelete(session._id)}
+                            onClick={() => setConfirmDelete({ id: session._id, title: session.title })}
                             className="p-3 text-indigo-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -470,7 +567,6 @@ export default function Dashboard() {
             </motion.div>
           </div>
 
-          {/* Sidebar — Session Form */}
           <div className="lg:col-span-1">
             <motion.div
               initial={{ opacity: 0, x: 20 }}

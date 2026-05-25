@@ -3,10 +3,11 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 export interface ISession extends Document {
   title: string;
   subject: string;
-  duration: number; // in minutes
+  duration: number;
   date: Date;
   notes?: string;
   userId: string;
+  completed: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +20,7 @@ const SessionSchema: Schema = new Schema(
     date: { type: Date, required: true },
     notes: { type: String },
     userId: { type: String, ref: "User", required: true },
+    completed: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

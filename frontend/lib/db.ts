@@ -12,10 +12,11 @@ declare global {
   var mongoose: MongooseCache | undefined;
 }
 
-let cached = global.mongoose;
+// Initialize cached with a default value
+let cached: MongooseCache = global.mongoose || { conn: null, promise: null };
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+if (!global.mongoose) {
+  global.mongoose = cached;
 }
 
 async function connectToDatabase() {

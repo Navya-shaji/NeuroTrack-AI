@@ -8,7 +8,7 @@ import {
   Tooltip as RechartsTooltip, ResponsiveContainer,
 } from "recharts";
 import {
-  Clock, BookOpen, Calendar, Trash2, Edit2, Plus,
+  Clock, Calendar, Trash2, Edit2, Plus,
   Filter, Search, TrendingUp, Sparkles, Brain, Zap,
   List, Activity,
 } from "lucide-react";

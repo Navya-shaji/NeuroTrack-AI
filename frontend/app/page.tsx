@@ -7,11 +7,7 @@ import {
   Clock, 
   BarChart3, 
   Sparkles, 
-  ArrowRight, 
-  CheckCircle2,
-  Zap,
-  ShieldCheck,
-  Target
+  ArrowRight
 } from "lucide-react";
 
 const fadeInUp = {

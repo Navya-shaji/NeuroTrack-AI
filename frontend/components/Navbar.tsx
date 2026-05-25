@@ -14,10 +14,14 @@ export default function Navbar() {
   const pathname = usePathname();
 
   useEffect(() => {
-    setMounted(true);
+    // Set mounted state after initial render to avoid hydration issues
+    const timer = setTimeout(() => setMounted(true), 0);
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const navLinks = [

@@ -78,9 +78,11 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    setMounted(true);
+    // Set mounted state after initial render to avoid hydration issues
+    const timer = setTimeout(() => setMounted(true), 0);
     setForm((prev) => ({ ...prev, date: new Date().toISOString().split("T")[0] }));
     fetchSessions();
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

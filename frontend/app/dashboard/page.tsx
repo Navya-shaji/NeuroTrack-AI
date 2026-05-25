@@ -59,6 +59,7 @@ export default function Dashboard() {
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [isPending, startTransition] = useTransition();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const showToast = (message: string, type: ToastType = "info") => {
     setToast({ message, type });
@@ -77,6 +78,7 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    setMounted(true);
     setForm((prev) => ({ ...prev, date: new Date().toISOString().split("T")[0] }));
     fetchSessions();
   }, []);
@@ -216,6 +218,7 @@ export default function Dashboard() {
               placeholder="Find sessions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              suppressHydrationWarning
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-indigo-100 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all glass shadow-sm"
             />
           </div>
@@ -335,11 +338,11 @@ export default function Dashboard() {
                   <Activity className="w-5 h-5" />
                 </div>
               </div>
-              <div className="h-[300px] w-full">
-                {loading ? (
+              <div style={{ width: "100%", height: 300 }}>
+                {loading || !mounted ? (
                   <Skeleton className="h-full w-full rounded-3xl bg-indigo-50" />
                 ) : (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={300}>
                     <AreaChart data={stats.weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorMinutes" x1="0" y1="0" x2="0" y2="1">
@@ -375,6 +378,7 @@ export default function Dashboard() {
                   <select
                     value={subjectFilter}
                     onChange={(e) => setSubjectFilter(e.target.value)}
+                    suppressHydrationWarning
                     className="appearance-none bg-indigo-50 border border-indigo-100 rounded-xl text-xs font-bold text-indigo-900/70 py-2.5 pl-9 pr-8 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer transition-all"
                   >
                     <option value="all">All Subjects</option>
@@ -482,6 +486,7 @@ export default function Dashboard() {
                     type="text"
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    suppressHydrationWarning
                     className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200", errors.title && "border-rose-500")}
                     placeholder="e.g. Quantum Mechanics"
                   />
@@ -494,6 +499,7 @@ export default function Dashboard() {
                     type="text"
                     value={form.subject}
                     onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                    suppressHydrationWarning
                     className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200", errors.subject && "border-rose-500")}
                     placeholder="e.g. Physics"
                   />
@@ -507,6 +513,7 @@ export default function Dashboard() {
                       type="number"
                       value={form.duration}
                       onChange={(e) => setForm({ ...form, duration: parseInt(e.target.value) })}
+                      suppressHydrationWarning
                       className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all", errors.duration && "border-rose-500")}
                     />
                     {errors.duration && <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider ml-1">{errors.duration}</p>}
@@ -517,6 +524,7 @@ export default function Dashboard() {
                       type="date"
                       value={form.date}
                       onChange={(e) => setForm({ ...form, date: e.target.value })}
+                      suppressHydrationWarning
                       className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all", errors.date && "border-rose-500")}
                     />
                     {errors.date && <p className="text-[10px] text-rose-500 font-bold uppercase tracking-wider ml-1">{errors.date}</p>}
@@ -529,6 +537,7 @@ export default function Dashboard() {
                     rows={4}
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    suppressHydrationWarning
                     className={cn("w-full bg-indigo-50/50 border border-indigo-100 rounded-2xl px-5 py-4 text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all resize-none placeholder:text-indigo-200", errors.notes && "border-rose-500")}
                     placeholder="Key concepts, breakthroughs..."
                   />
@@ -538,6 +547,7 @@ export default function Dashboard() {
                 <button
                   type="submit"
                   disabled={isPending}
+                  suppressHydrationWarning
                   className="w-full bg-indigo-600 text-white hover:bg-indigo-700 py-5 rounded-2xl text-lg font-black transition-all shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:scale-100"
                 >
                   {editingId ? "Update Intelligence" : "Commit to Neural Log"}
@@ -546,6 +556,7 @@ export default function Dashboard() {
                 {editingId && (
                   <button
                     type="button"
+                    suppressHydrationWarning
                     onClick={() => {
                       setEditingId(null);
                       setForm({ title: "", subject: "", duration: 30, date: new Date().toISOString().split("T")[0], notes: "" });

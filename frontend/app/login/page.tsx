@@ -101,6 +101,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
+                  suppressHydrationWarning
                   className="w-full pl-12 pr-5 py-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200"
                 />
               </div>
@@ -118,6 +119,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  suppressHydrationWarning
                   className="w-full pl-12 pr-5 py-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200"
                 />
               </div>
@@ -126,6 +128,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isPending}
+              suppressHydrationWarning
               className="w-full bg-indigo-600 text-white hover:bg-indigo-700 py-4 rounded-2xl text-lg font-black transition-all shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group mt-8 disabled:opacity-60 disabled:scale-100"
             >
               {isPending ? (
@@ -154,6 +157,7 @@ export default function LoginPage() {
           <button
             onClick={handleGoogleLogin}
             disabled={googlePending}
+            suppressHydrationWarning
             className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border border-indigo-100 rounded-2xl text-sm font-bold text-indigo-900/70 hover:bg-indigo-50 hover:border-indigo-200 transition-all shadow-sm disabled:opacity-60 mb-10"
           >
             {googlePending ? (

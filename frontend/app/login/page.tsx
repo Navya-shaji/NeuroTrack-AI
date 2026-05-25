@@ -4,16 +4,26 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { z } from "zod";
 import { useAuth } from "@/context/AuthContext";
 import { login } from "@/actions/auth";
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 import { Brain, ArrowRight, Mail, Lock, Sparkles } from "lucide-react";
+
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type FieldErrors = Partial<Record<"email" | "password", string>>;
 
 export default function LoginPage() {
   const router = useRouter();
   const { setUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
   const [googlePending, setGooglePending] = useState(false);
@@ -21,6 +31,18 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
+
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      const errs: FieldErrors = {};
+      parsed.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof FieldErrors;
+        if (!errs[field]) errs[field] = issue.message;
+      });
+      setFieldErrors(errs);
+      return;
+    }
 
     startTransition(async () => {
       const result = await login(email, password);
@@ -28,7 +50,6 @@ export default function LoginPage() {
         setError(result.error);
         return;
       }
-      // Sync client-side user state from the session
       const session = await authClient.getSession();
       if (session.data?.user) {
         setUser({
@@ -47,10 +68,7 @@ export default function LoginPage() {
     setGooglePending(true);
     setError("");
     try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/dashboard",
-      });
+      await authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" });
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Google login failed");
       setError(error.message);
@@ -60,13 +78,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-mesh flex items-center justify-center p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         <div className="glass rounded-[2.5rem] border border-indigo-100 shadow-2xl p-8 md:p-12">
-          {/* Header */}
+
           <div className="text-center mb-10">
             <Link href="/" className="inline-flex items-center gap-2.5 mb-8 group">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-100 group-hover:scale-110 transition-transform duration-300">
@@ -77,7 +91,6 @@ export default function LoginPage() {
             <p className="text-indigo-900/50 font-bold mt-2">Sign in to your neural workspace</p>
           </div>
 
-          {/* Error */}
           {error && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -88,78 +101,67 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest ml-1">
-                Email Address
-              </label>
+              <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest ml-1">Email Address</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-300 group-focus-within:text-indigo-600 transition-colors" />
                 <input
-                  required
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setFieldErrors((p) => ({ ...p, email: undefined })); }}
                   placeholder="name@example.com"
                   suppressHydrationWarning
-                  className="w-full pl-12 pr-5 py-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200"
+                  className={cn("w-full pl-12 pr-5 py-4 bg-indigo-50/50 border rounded-2xl text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200", fieldErrors.email ? "border-rose-400" : "border-indigo-100")}
                 />
               </div>
+              {fieldErrors.email && <p className="text-[11px] text-rose-500 font-bold ml-1">{fieldErrors.email}</p>}
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest ml-1">
-                Password
-              </label>
+              <label className="text-xs font-black text-indigo-900/40 uppercase tracking-widest ml-1">Password</label>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-300 group-focus-within:text-indigo-600 transition-colors" />
                 <input
-                  required
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); setFieldErrors((p) => ({ ...p, password: undefined })); }}
                   placeholder="••••••••"
                   suppressHydrationWarning
-                  className="w-full pl-12 pr-5 py-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200"
+                  className={cn("w-full pl-12 pr-5 py-4 bg-indigo-50/50 border rounded-2xl text-sm font-bold text-indigo-950 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-indigo-200", fieldErrors.password ? "border-rose-400" : "border-indigo-100")}
                 />
               </div>
+              {fieldErrors.password && <p className="text-[11px] text-rose-500 font-bold ml-1">{fieldErrors.password}</p>}
             </div>
 
             <button
               type="submit"
               disabled={isPending}
               suppressHydrationWarning
-              className="w-full bg-indigo-600 text-white hover:bg-indigo-700 py-4 rounded-2xl text-lg font-black transition-all shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group mt-8 disabled:opacity-60 disabled:scale-100"
+              className="w-full bg-indigo-600 text-white hover:bg-indigo-700 py-4 rounded-2xl text-lg font-black transition-all shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group mt-4 disabled:opacity-60 disabled:scale-100"
             >
               {isPending ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <>
-                  Sign In <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </>
+                <>Sign In <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>
               )}
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="relative my-10">
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-indigo-100" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-4 bg-white text-indigo-900/30 font-black uppercase tracking-widest">
-                Or continue with
-              </span>
+              <span className="px-4 bg-white text-indigo-900/30 font-black uppercase tracking-widest">Or continue with</span>
             </div>
           </div>
 
-          {/* Google */}
           <button
             onClick={handleGoogleLogin}
             disabled={googlePending}
             suppressHydrationWarning
-            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border border-indigo-100 rounded-2xl text-sm font-bold text-indigo-900/70 hover:bg-indigo-50 hover:border-indigo-200 transition-all shadow-sm disabled:opacity-60 mb-10"
+            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border border-indigo-100 rounded-2xl text-sm font-bold text-indigo-900/70 hover:bg-indigo-50 hover:border-indigo-200 transition-all shadow-sm disabled:opacity-60 mb-8"
           >
             {googlePending ? (
               <div className="w-5 h-5 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin" />
@@ -174,13 +176,9 @@ export default function LoginPage() {
             Continue with Google
           </button>
 
-          {/* Footer */}
           <p className="text-center text-sm font-bold text-indigo-900/40">
             New to NeuroTrack?{" "}
-            <Link
-              href="/signup"
-              className="text-indigo-600 hover:text-indigo-700 transition-colors font-black underline underline-offset-4 decoration-2"
-            >
+            <Link href="/signup" className="text-indigo-600 hover:text-indigo-700 transition-colors font-black underline underline-offset-4 decoration-2">
               Create Account
             </Link>
           </p>

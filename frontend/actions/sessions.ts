@@ -39,7 +39,19 @@ const updateSessionSchema = createSessionSchema.partial();
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function serializeSession(doc: any): SessionData {
+interface SessionDocument {
+  _id: { toString(): string };
+  title: string;
+  subject: string;
+  duration: number;
+  date: Date | string;
+  notes?: string;
+  userId: { toString(): string };
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+function serializeSession(doc: SessionDocument): SessionData {
   return {
     _id: doc._id.toString(),
     title: doc.title,
@@ -88,9 +100,10 @@ export async function createSession(
     });
 
     return { session: serializeSession(session.toObject()) };
-  } catch (err: any) {
-    console.error("Create Session Error:", err);
-    return { error: err.message || "Failed to create session" };
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("Create Session Error:", error);
+    return { error: error.message || "Failed to create session" };
   }
 }
 
@@ -120,9 +133,10 @@ export async function updateSession(
     }
 
     return { session: serializeSession(session) };
-  } catch (err: any) {
-    console.error("Update Session Error:", err);
-    return { error: err.message || "Failed to update session" };
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("Update Session Error:", error);
+    return { error: error.message || "Failed to update session" };
   }
 }
 
@@ -143,8 +157,9 @@ export async function deleteSession(id: string): Promise<{ error?: string }> {
     }
 
     return {};
-  } catch (err: any) {
-    console.error("Delete Session Error:", err);
-    return { error: err.message || "Failed to delete session" };
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("Delete Session Error:", error);
+    return { error: error.message || "Failed to delete session" };
   }
 }

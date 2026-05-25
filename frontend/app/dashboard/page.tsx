@@ -81,6 +81,7 @@ export default function Dashboard() {
     setMounted(true);
     setForm((prev) => ({ ...prev, date: new Date().toISOString().split("T")[0] }));
     fetchSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleGenerateInsights = async () => {
@@ -310,9 +311,9 @@ export default function Dashboard() {
                     <div className="p-6 bg-white/10 rounded-3xl backdrop-blur-md border border-white/10 prose prose-invert max-w-none">
                       <ReactMarkdown
                         components={{
-                          h2: ({ node, ...props }) => <h3 className="text-xl font-black text-white mb-4 mt-6 first:mt-0" {...props} />,
-                          p: ({ node, ...props }) => <p className="text-indigo-50 font-medium leading-relaxed mb-4" {...props} />,
-                          li: ({ node, ...props }) => <li className="text-indigo-50 font-medium marker:text-indigo-200" {...props} />,
+                          h2: ({ ...props }) => <h3 className="text-xl font-black text-white mb-4 mt-6 first:mt-0" {...props} />,
+                          p: ({ ...props }) => <p className="text-indigo-50 font-medium leading-relaxed mb-4" {...props} />,
+                          li: ({ ...props }) => <li className="text-indigo-50 font-medium marker:text-indigo-200" {...props} />,
                         }}
                       >
                         {aiInsights}

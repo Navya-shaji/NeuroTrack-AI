@@ -48,9 +48,10 @@ export async function signUp(
       headers: await headers(),
     });
     return { success: true };
-  } catch (err: any) {
+  } catch (err) {
+    const error = err as { body?: { message?: string }; message?: string };
     const message =
-      err?.body?.message || err?.message || "Something went wrong";
+      error?.body?.message || error?.message || "Something went wrong";
     return { error: message };
   }
 }
@@ -67,9 +68,10 @@ export async function login(
       headers: await headers(),
     });
     return { success: true };
-  } catch (err: any) {
+  } catch (err) {
+    const error = err as { body?: { message?: string }; message?: string };
     const message =
-      err?.body?.message || err?.message || "Invalid credentials";
+      error?.body?.message || error?.message || "Invalid credentials";
     return { error: message };
   }
 }

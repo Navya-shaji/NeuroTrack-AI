@@ -51,8 +51,9 @@ export default function LoginPage() {
         provider: "google",
         callbackURL: "/dashboard",
       });
-    } catch (err: any) {
-      setError(err.message || "Google login failed");
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Google login failed");
+      setError(error.message);
       setGooglePending(false);
     }
   };

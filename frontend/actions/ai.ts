@@ -62,9 +62,10 @@ Keep it encouraging and professional.
 
     const insight = await generateText(prompt);
     return { insight };
-  } catch (err: any) {
-    console.error("Generate Insights Error:", err);
-    return { error: err.message || "Failed to generate insights" };
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("Generate Insights Error:", error);
+    return { error: error.message || "Failed to generate insights" };
   }
 }
 
@@ -87,9 +88,10 @@ ${notes}
 
     const summary = await generateText(prompt);
     return { summary };
-  } catch (err: any) {
-    console.error("Summarize Notes Error:", err);
-    return { error: err.message || "Failed to summarize notes" };
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("Summarize Notes Error:", error);
+    return { error: error.message || "Failed to summarize notes" };
   }
 }
 
@@ -129,8 +131,9 @@ Return the response in clean Markdown with a '## Summary' section and a '## Sugg
 
     const suggestion = await generateText(prompt);
     return { suggestion };
-  } catch (err: any) {
-    console.error("Get Study Suggestion Error:", err);
-    return { error: err.message || "Failed to generate suggestion" };
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("Get Study Suggestion Error:", error);
+    return { error: error.message || "Failed to generate suggestion" };
   }
 }

@@ -2,9 +2,7 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { getAuth } from "@/lib/auth";
 
 export interface AuthUser {
   id: string;
@@ -18,11 +16,9 @@ export interface ActionResult {
   success?: boolean;
 }
 
-// ─── Get Current User ─────────────────────────────────────────────────────────
-
 export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getAuth().api.getSession({ headers: await headers() });
     if (!session?.user) return null;
     return {
       id: session.user.id,
@@ -35,55 +31,45 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   }
 }
 
-// ─── Sign Up ──────────────────────────────────────────────────────────────────
-
 export async function signUp(
   name: string,
   email: string,
   password: string
 ): Promise<ActionResult> {
   try {
-    await auth.api.signUpEmail({
+    await getAuth().api.signUpEmail({
       body: { name, email, password },
       headers: await headers(),
     });
     return { success: true };
   } catch (err) {
     const error = err as { body?: { message?: string }; message?: string };
-    const message =
-      error?.body?.message || error?.message || "Something went wrong";
+    const message = error?.body?.message || error?.message || "Something went wrong";
     return { error: message };
   }
 }
-
-// ─── Login ────────────────────────────────────────────────────────────────────
 
 export async function login(
   email: string,
   password: string
 ): Promise<ActionResult> {
   try {
-    await auth.api.signInEmail({
+    await getAuth().api.signInEmail({
       body: { email, password },
       headers: await headers(),
     });
     return { success: true };
   } catch (err) {
     const error = err as { body?: { message?: string }; message?: string };
-    const message =
-      error?.body?.message || error?.message || "Invalid credentials";
+    const message = error?.body?.message || error?.message || "Invalid credentials";
     return { error: message };
   }
 }
 
-// ─── Logout ───────────────────────────────────────────────────────────────────
-
 export async function logout(): Promise<void> {
-  await auth.api.signOut({ headers: await headers() });
+  await getAuth().api.signOut({ headers: await headers() });
   redirect("/login");
 }
-
-// ─── Require Auth ─────────────────────────────────────────────────────────────
 
 export async function requireAuth(): Promise<AuthUser> {
   const user = await getCurrentUser();
